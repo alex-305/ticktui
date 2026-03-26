@@ -45,7 +45,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 
-		case "esc", "backspace":
+		case "esc":
 			if len(m.history) > 0 {
 				lastIndex := len(m.history) - 1
 				lastPage := m.history[lastIndex]
