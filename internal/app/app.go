@@ -12,12 +12,14 @@ type Model struct {
 	width  int
 	height int
 
+	history []screens.Screen
 	current screens.Screen
 }
 
 func NewModel() Model {
 	return Model{
 		current: screens.NewHomeScreen(),
+		history: []screens.Screen{},
 	}
 }
 
@@ -27,7 +29,10 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-
+	case screens.ChangeScreenMsg:
+		m.history = append(m.history, m.current)
+		m.current = msg.NewScreen
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -36,12 +41,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateScreen(msg)
 
 	case tea.KeyMsg:
-		if msg.String() == "q" || msg.String() == "ctrl+c" {
+		switch msg.String() {
+		case "q", "ctrl+c":
 			return m, tea.Quit
+
+		case "esc", "backspace":
+			if len(m.history) > 0 {
+				lastIndex := len(m.history) - 1
+				lastPage := m.history[lastIndex]
+				m.history = m.history[:lastIndex]
+
+				m.current = lastPage
+
+				return m, nil
+			}
 		}
 	}
-
 	return m.updateScreen(msg)
+
 }
 
 func (m Model) updateScreen(msg tea.Msg) (tea.Model, tea.Cmd) {
