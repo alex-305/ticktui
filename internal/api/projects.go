@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/sho0pi/tickli/internal/config"
+	"github.com/alex-305/ticktui/internal/config"
 )
 
 func GetClient() (*Client, error) {
