@@ -19,3 +19,7 @@ func (s *TaskService) CreateTask(title, description string) (*types.Task, error)
 
 	return s.client.CreateTask(&task)
 }
+
+func (s *TaskService) ListTasks(projectID string) ([]types.Task, error) {
+	return s.client.ListTasks(projectID)
+}
