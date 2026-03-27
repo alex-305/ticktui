@@ -2,9 +2,13 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/alex-305/ticktui/internal/api"
+	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
+	"github.com/alex-305/ticktui/internal/services"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -14,12 +18,24 @@ type Model struct {
 
 	history []screens.Screen
 	current screens.Screen
+
+	ctx context.AppContext
 }
 
 func NewModel() Model {
+	client, err := api.GetClient()
+
+	if err != nil {
+		log.Fatal("Client not working")
+	}
+
+	ctx := context.AppContext{
+		TaskService: services.NewTaskService(client),
+	}
 	return Model{
-		current: screens.NewHomeScreen(),
+		current: screens.NewHomeScreen(ctx),
 		history: []screens.Screen{},
+		ctx:     ctx,
 	}
 }
 

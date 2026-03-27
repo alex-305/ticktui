@@ -3,6 +3,9 @@ package screens
 import (
 	"fmt"
 
+	"github.com/alex-305/ticktui/internal/context"
+	"github.com/alex-305/ticktui/internal/services"
+	"github.com/alex-305/ticktui/internal/types"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,9 +15,16 @@ type CreateTaskScreen struct {
 	titleInput textinput.Model
 	descInput  textarea.Model
 	focusIndex int
+	service    *services.TaskService
+	err        error
 }
 
-func NewCreateTaskScreen() Screen {
+type taskCreatedMsg struct {
+	task *types.Task
+	err  error
+}
+
+func NewCreateTaskScreen(ctx context.AppContext) Screen {
 	ti := textinput.New()
 	ti.Placeholder = "Enter task title..."
 	ti.Focus()
@@ -30,6 +40,7 @@ func NewCreateTaskScreen() Screen {
 		titleInput: ti,
 		descInput:  ta,
 		focusIndex: 0,
+		service:    ctx.TaskService,
 	}
 }
 
@@ -63,6 +74,14 @@ func (h CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cm
 			cmds = append(cmds, cmd)
 
 			return h, tea.Batch(cmds...)
+		case tea.KeyCtrlS:
+			title := h.titleInput.Value()
+			desc := h.descInput.Value()
+
+			return h, func() tea.Msg {
+				task, err := h.service.CreateTask(title, desc)
+				return taskCreatedMsg{task: task, err: err}
+			}
 		}
 	}
 
@@ -78,7 +97,7 @@ func (h CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cm
 
 func (h CreateTaskScreen) View(width, height int) string {
 	return fmt.Sprintf(
-		"New Task\n\nTitle:\n%s\n\nDescription:\n%s\n\n[Tab] Next field • [Shift+Tab] Prev field",
+		"New Task\n\nTitle:\n%s\n\nDescription:\n%s\n\n[Ctrl+S] Submit • [Tab] Next field • [Shift+Tab] Prev field",
 		h.titleInput.View(),
 		h.descInput.View(),
 	)

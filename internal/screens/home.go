@@ -3,14 +3,16 @@ package screens
 import (
 	"fmt"
 
+	"github.com/alex-305/ticktui/internal/context"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type HomeScreen struct {
 	lastKey string
+	ctx     context.AppContext
 }
 
-func NewHomeScreen() Screen {
+func NewHomeScreen(ctx context.AppContext) Screen {
 	return HomeScreen{
 		lastKey: "None yet",
 	}
@@ -24,7 +26,7 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		case "n":
 			// We caught "n"! Tell the main model to switch screens.
 			cmd := func() tea.Msg {
-				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen()}
+				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx)}
 			}
 			return h, cmd
 		}
