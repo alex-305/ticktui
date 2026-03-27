@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/alex-305/ticktui/internal/context"
-	"github.com/alex-305/ticktui/internal/services"
 	"github.com/alex-305/ticktui/internal/types"
 	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -15,7 +14,7 @@ type CreateTaskScreen struct {
 	titleInput textinput.Model
 	descInput  textarea.Model
 	focusIndex int
-	service    *services.TaskService
+	ctx        context.AppContext
 	err        error
 }
 
@@ -40,7 +39,7 @@ func NewCreateTaskScreen(ctx context.AppContext) Screen {
 		titleInput: ti,
 		descInput:  ta,
 		focusIndex: 0,
-		service:    ctx.TaskService,
+		ctx:        ctx,
 	}
 }
 
@@ -79,7 +78,7 @@ func (h CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cm
 			desc := h.descInput.Value()
 
 			return h, func() tea.Msg {
-				task, err := h.service.CreateTask(title, desc)
+				task, err := h.ctx.TaskService.CreateTask(title, desc)
 				return taskCreatedMsg{task: task, err: err}
 			}
 		}
