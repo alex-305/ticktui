@@ -24,3 +24,7 @@ type ProjectsLoadedMsg struct {
 	projects []types.Project
 	err      error
 }
+
+type TaskCompletedMsg struct {
+	err error
+}

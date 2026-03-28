@@ -55,7 +55,7 @@ func (h *HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
 func (h *HomeScreen) completeTaskCmd(task types.Task) tea.Cmd {
 	return func() tea.Msg {
 		err := h.ctx.APIClient.CompleteTask(task.ProjectID, task.ID)
-		return TaskDeletedMsg{err}
+		return TaskCompletedMsg{err}
 	}
 }
 
@@ -165,6 +165,13 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		h.activeLoading = true
 		h.activeLoaded = false
 		return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
+	case TaskCompletedMsg:
+		if msg.err != nil {
+			h.err = msg.err
+			h.activeLoading = false
+			return h, nil
+		}
+		return h.fullFetch()
 
 	case tea.KeyMsg:
 		switch msg.String() {
