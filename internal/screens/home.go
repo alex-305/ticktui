@@ -24,7 +24,7 @@ type HomeScreen struct {
 	projectIDs    []string
 	activeProject int
 
-	taskTable          components.TaskTable
+	activeTaskTable    components.TaskTable
 	completedTaskTable components.TaskTable
 	paginator          paginator.Model
 	focus              Focus
@@ -121,7 +121,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			h.err = msg.err
 			return h, nil
 		}
-		h.taskTable = components.NewTaskTable(msg.tasks, width)
+		h.activeTaskTable = components.NewTaskTable(msg.tasks, width)
 		h.activeLoading = false
 		h.activeLoaded = true
 		return h, nil
@@ -149,6 +149,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		h.projectIDs = ids
 		p := paginator.New()
 		p.SetTotalPages(lenProjects)
+		p.Type = paginator.Dots
 		h.paginator = p
 
 		return h.fullFetch()
@@ -197,14 +198,14 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
 			}
 		case "x":
-			selectedTask, ok := h.taskTable.GetSelectedTask()
+			selectedTask, ok := h.activeTaskTable.GetSelectedTask()
 			if !ok {
 				return h, nil
 			}
 
 			return h, h.deleteTaskCmd(selectedTask)
 		case "c":
-			selectedTask, ok := h.taskTable.GetSelectedTask()
+			selectedTask, ok := h.activeTaskTable.GetSelectedTask()
 			if !ok {
 				return h, nil
 			}
@@ -216,7 +217,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 	}
 
 	if h.activeLoaded {
-		cmd := h.taskTable.Update(msg)
+		cmd := h.activeTaskTable.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -236,22 +237,13 @@ func (h *HomeScreen) View(width, height int) string {
 	if len(h.projects) == 0 {
 		return "\n  Initializing projects..."
 	}
-	activeView := "  Loading tasks..."
-	if h.activeLoaded {
-		activeView = h.taskTable.View()
-	}
-
-	completedView := "  Loading completed tasks..."
-	if h.completedLoaded {
-		completedView = h.completedTaskTable.View()
-	}
 
 	return fmt.Sprintf(
 		"Project: %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
 		h.projects[h.activeProject].Name,
-		activeView,
+		h.activeTaskTable.View(),
 		h.paginator.View(),
-		completedView,
+		h.completedTaskTable.View(),
 		"Controls: [Tab] Focus • [r] Refresh",
 	)
 }
