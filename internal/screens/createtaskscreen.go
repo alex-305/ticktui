@@ -84,7 +84,13 @@ func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.C
 	if h.form.State == huh.StateCompleted && !h.loading {
 		h.loading = true
 		return h, func() tea.Msg {
-			task, err := h.ctx.TaskService.CreateTask(h.title, h.desc, h.priority, h.projectID)
+
+			task, err := h.ctx.APIClient.CreateTask(&types.Task{
+				Title:     h.title,
+				Desc:      h.desc,
+				Priority:  h.priority,
+				ProjectID: h.projectID,
+			})
 			return taskCreatedMsg{task: task, err: err}
 		}
 	}

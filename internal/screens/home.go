@@ -47,7 +47,7 @@ func NewHomeScreen(ctx context.AppContext) Screen {
 }
 func (h *HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
 	return func() tea.Msg {
-		err := h.ctx.TaskService.DeleteTask(task.ProjectID, task.ID)
+		err := h.ctx.APIClient.DeleteTask(task.ProjectID, task.ID)
 		return TaskDeletedMsg{err}
 	}
 }
@@ -65,7 +65,7 @@ func (h HomeScreen) fetchCompletedTasksCmd(projectIDs []string) tea.Cmd {
 
 func (h *HomeScreen) fetchActiveTasksCmd(projectID string) tea.Cmd {
 	return func() tea.Msg {
-		tasks, err := h.ctx.TaskService.ListTasks(projectID)
+		tasks, err := h.ctx.APIClient.ListTasks(projectID)
 		if err != nil {
 			return err
 		}
@@ -82,7 +82,7 @@ func (h *HomeScreen) fetchAllData(projectID string, allProjectIDs []string) tea.
 
 func (h *HomeScreen) fetchProjectsCmd() tea.Cmd {
 	return func() tea.Msg {
-		projects, err := h.ctx.TaskService.ListProjects()
+		projects, err := h.ctx.APIClient.ListProjects()
 		if err != nil {
 			return err
 		}

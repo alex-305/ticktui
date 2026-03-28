@@ -8,7 +8,6 @@ import (
 	"github.com/alex-305/ticktui/internal/api"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
-	"github.com/alex-305/ticktui/internal/services"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -30,8 +29,7 @@ func NewModel() *Model {
 	}
 
 	ctx := context.AppContext{
-		TaskService: services.NewTaskService(client),
-		APIClient:   client,
+		APIClient: client,
 	}
 	return &Model{
 		current: screens.NewHomeScreen(ctx),
