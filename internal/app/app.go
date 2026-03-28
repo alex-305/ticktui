@@ -22,7 +22,7 @@ type Model struct {
 	ctx context.AppContext
 }
 
-func NewModel() Model {
+func NewModel() *Model {
 	client, err := api.GetClient()
 
 	if err != nil {
@@ -32,23 +32,25 @@ func NewModel() Model {
 	ctx := context.AppContext{
 		TaskService: services.NewTaskService(client),
 	}
-	return Model{
+	return &Model{
 		current: screens.NewHomeScreen(ctx),
 		history: []screens.Screen{},
 		ctx:     ctx,
 	}
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case screens.ChangeScreenMsg:
 		m.history = append(m.history, m.current)
 		m.current = msg.NewScreen
 		return m, nil
+	case screens.GoBackScreenMsg:
+		navigateBackAScreen(m)
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -76,13 +78,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 }
 
-func (m Model) updateScreen(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) updateScreen(msg tea.Msg) (tea.Model, tea.Cmd) {
 	screen, cmd := m.current.Update(msg, m.width, m.height)
 	m.current = screen
 	return m, cmd
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	return m.current.View(m.width, m.height)
 }
 

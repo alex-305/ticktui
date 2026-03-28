@@ -24,7 +24,7 @@ func NewTaskTable(tasks []types.Task, width int) TaskTable {
 	rows := make([]table.Row, len(tasks))
 	for i, t := range tasks {
 		tm := time.Time(t.DueDate)
-		dueDateStr := "No Date"
+		dueDateStr := "None"
 		if !tm.IsZero() {
 			dueDateStr = tm.Format("2006-01-02")
 		}

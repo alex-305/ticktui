@@ -48,6 +48,10 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		h.err = msg
 		return h, nil
 
+	case GoBackScreenMsg:
+		h.loading = true
+		return h, h.fetchTasksCmd()
+
 	case []types.Task:
 		h.taskTable = components.NewTaskTable(msg, width)
 		h.loaded = true

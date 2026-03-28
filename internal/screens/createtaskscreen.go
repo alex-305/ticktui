@@ -69,7 +69,7 @@ func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.C
 			return h, nil
 		}
 		return h, func() tea.Msg {
-			return ChangeScreenMsg{NewScreen: NewHomeScreen(h.ctx)}
+			return GoBackScreenMsg{}
 		}
 	}
 
