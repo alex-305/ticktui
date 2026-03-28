@@ -23,6 +23,12 @@ func NewHomeScreen(ctx context.AppContext) Screen {
 		loading: false,
 	}
 }
+func (h HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
+	return func() tea.Msg {
+		err := h.ctx.TaskService.DeleteTask(task.ProjectID, task.ID)
+		return TaskDeletedMsg{err}
+	}
+}
 
 func (h HomeScreen) fetchTasksCmd() tea.Cmd {
 	return func() tea.Msg {
@@ -51,6 +57,14 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 	case GoBackScreenMsg:
 		h.loading = true
 		return h, h.fetchTasksCmd()
+	case TaskDeletedMsg:
+		if msg.err != nil {
+			h.err = msg.err
+			h.loading = false
+			return h, nil
+		}
+		h.loading = true
+		return h, h.fetchTasksCmd()
 
 	case []types.Task:
 		h.taskTable = components.NewTaskTable(msg, width)
@@ -67,6 +81,13 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			return h, func() tea.Msg {
 				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx)}
 			}
+		case "x":
+			selectedTask, ok := h.taskTable.GetSelectedTask()
+			if !ok {
+				return h, nil
+			}
+
+			return h, h.deleteTaskCmd(selectedTask)
 		case "ctrl+c":
 			return h, tea.Quit
 		}
@@ -90,7 +111,7 @@ func (h HomeScreen) View(width, height int) string {
 	}
 
 	return fmt.Sprintf(
-		"TickTUI - My Tasks\n\n%s\n\n[r] Refresh [n] New Task • [ctrl + c] Quit",
+		"TickTUI - My Tasks\n\n%s\n\n[r] Refresh • [n] New Task • [x] Delete Selected Task • [ctrl + c] Quit",
 		h.taskTable.View(),
 	)
 }

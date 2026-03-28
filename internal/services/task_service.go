@@ -24,7 +24,8 @@ func (s *TaskService) CreateTask(title, description string, priority task.Priori
 	return s.client.CreateTask(&task)
 }
 
-func (s *TaskService) DeleteTask(projectID, taskID string) {
+func (s *TaskService) DeleteTask(projectID, taskID string) error {
+	return s.client.DeleteTask(projectID, taskID)
 
 }
 
