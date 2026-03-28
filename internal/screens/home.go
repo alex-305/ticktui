@@ -59,6 +59,13 @@ func (h *HomeScreen) completeTaskCmd(task types.Task) tea.Cmd {
 	}
 }
 
+func (h *HomeScreen) getFocusedTable() *components.TaskTable {
+	if h.focus == FocusActive {
+		return &h.activeTaskTable
+	}
+	return &h.completedTaskTable
+}
+
 func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
 	h.activeLoading = true
 	h.completedLoading = true
@@ -162,9 +169,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			h.activeLoading = false
 			return h, nil
 		}
-		h.activeLoading = true
-		h.activeLoaded = false
-		return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
+		return h.fullFetch()
 	case TaskCompletedMsg:
 		if msg.err != nil {
 			h.err = msg.err
@@ -205,7 +210,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
 			}
 		case "x":
-			selectedTask, ok := h.activeTaskTable.GetSelectedTask()
+			selectedTask, ok := h.getFocusedTable().GetSelectedTask()
 			if !ok {
 				return h, nil
 			}
@@ -223,15 +228,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		}
 	}
 
-	if h.activeLoaded {
-		cmd := h.activeTaskTable.Update(msg)
-		cmds = append(cmds, cmd)
-	}
-
-	if h.completedLoaded {
-		cmd := h.completedTaskTable.Update(msg)
-		cmds = append(cmds, cmd)
-	}
+	h.getFocusedTable().Update(msg)
 
 	return h, tea.Batch(cmds...)
 }
