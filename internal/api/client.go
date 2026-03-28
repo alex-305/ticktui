@@ -3,9 +3,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/alex-305/ticktui/internal/types"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
-	"github.com/alex-305/ticktui/internal/types"
 )
 
 const (
@@ -135,6 +135,32 @@ func (c *Client) ListTasks(projectID string) ([]types.Task, error) {
 	}
 
 	return projectData.Tasks, nil
+}
+
+func (c *Client) ListCompletedTasks(projectIDs []string, startDate, endDate types.TickTickTime) ([]types.Task, error) {
+	c.http.SetDebug(true)
+	var tasks []types.Task
+
+	// stDate, err := startDate.MarshalJSONWithMS()
+	// eDate, err := endDate.MarshalJSONWithMS()
+
+	resp, err := c.http.R().
+		SetResult(&tasks).
+		SetBody(map[string]any{
+			"startDate": "2020-03-01T00:58:20.000+0000",
+			"endDate":   "2026-03-05T10:58:20.000+0000"},
+		).
+		Post("/task/completed")
+
+	if err != nil {
+		return nil, errors.Wrap(err, "listing tasks")
+	}
+
+	if resp.IsError() {
+		return nil, fmt.Errorf("failed to list tasks: %s", resp.String())
+	}
+
+	return tasks, nil
 }
 
 func (c *Client) GetProjectWithTasks(projectID string) (*types.ProjectData, error) {

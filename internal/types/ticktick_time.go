@@ -9,6 +9,11 @@ import (
 
 type TickTickTime time.Time
 
+type DateRange struct {
+	StartDate TickTickTime `json:"startDate"`
+	EndDate   TickTickTime `json:"endDate"`
+}
+
 func (t *TickTickTime) UnmarshalJSON(data []byte) error {
 	var timeStr string
 	if err := json.Unmarshal(data, &timeStr); err != nil {
@@ -26,6 +31,10 @@ func (t *TickTickTime) UnmarshalJSON(data []byte) error {
 
 func (t TickTickTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(time.Time(t).Format("2006-01-02T15:04:05-0700"))
+}
+
+func (t TickTickTime) MarshalJSONWithMS() ([]byte, error) {
+	return json.Marshal(time.Time(t).Format("2006-01-02T15:04:05.000-0700"))
 }
 
 func (t TickTickTime) String() string {

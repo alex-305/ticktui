@@ -31,6 +31,7 @@ func NewModel() *Model {
 
 	ctx := context.AppContext{
 		TaskService: services.NewTaskService(client),
+		APIClient:   client,
 	}
 	return &Model{
 		current: screens.NewHomeScreen(ctx),
