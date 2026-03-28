@@ -191,7 +191,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 				return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
 			}
 		case "r":
-			h.fullFetch()
+			return h.fullFetch()
 		case "n":
 			return h, func() tea.Msg {
 				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
