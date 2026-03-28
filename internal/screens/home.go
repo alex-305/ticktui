@@ -66,6 +66,13 @@ func (h *HomeScreen) getFocusedTable() *components.TaskTable {
 	return &h.completedTaskTable
 }
 
+func (h *HomeScreen) getUnfocusedTable() *components.TaskTable {
+	if h.focus != FocusActive {
+		return &h.activeTaskTable
+	}
+	return &h.completedTaskTable
+}
+
 func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
 	h.activeLoading = true
 	h.completedLoading = true
@@ -131,6 +138,9 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		h.activeTaskTable = components.NewTaskTable(msg.tasks, width)
 		h.activeLoading = false
 		h.activeLoaded = true
+
+		h.getFocusedTable().ApplyActiveStyle()
+		h.getUnfocusedTable().ApplyInactiveStyle()
 		return h, nil
 	case CompletedTaskListMsg:
 		if msg.err != nil {
@@ -140,6 +150,9 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		h.completedTaskTable = components.NewTaskTable(msg.tasks, width)
 		h.completedLoading = false
 		h.completedLoaded = true
+
+		h.getFocusedTable().ApplyActiveStyle()
+		h.getUnfocusedTable().ApplyInactiveStyle()
 		return h, nil
 
 	case ProjectsLoadedMsg:
@@ -186,6 +199,8 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			} else {
 				h.focus = FocusActive
 			}
+			h.getFocusedTable().ApplyActiveStyle()
+			h.getUnfocusedTable().ApplyInactiveStyle()
 			return h, nil
 		case "l":
 			if h.activeProject < len(h.projects)-1 {
@@ -204,6 +219,8 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 				return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
 			}
 		case "r":
+			h.getFocusedTable().ApplyActiveStyle()
+			h.getUnfocusedTable().ApplyInactiveStyle()
 			return h.fullFetch()
 		case "n":
 			return h, func() tea.Msg {

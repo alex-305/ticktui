@@ -44,20 +44,10 @@ func NewTaskTable(tasks []types.Task, width int) TaskTable {
 		table.WithFocused(true),
 		table.WithHeight(10),
 	)
+	tt := TaskTable{Model: t, Tasks: tasks}
+	tt.ApplyActiveStyle()
 
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(true)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	return TaskTable{Model: t, Tasks: tasks}
+	return tt
 }
 
 func renderPriority(p int) string {
@@ -71,6 +61,42 @@ func renderPriority(p int) string {
 	default:
 		return "None"
 	}
+}
+
+func (tt *TaskTable) ApplyActiveStyle() {
+	s := table.DefaultStyles()
+
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(true)
+
+	s.Header = s.Header.
+		Foreground(lipgloss.Color("205")).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(true)
+
+	tt.Model.SetStyles(s)
+}
+
+func (tt *TaskTable) ApplyInactiveStyle() {
+	s := table.DefaultStyles()
+
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("240")).
+		Background(lipgloss.Color("235")).
+		Bold(false)
+
+	s.Header = s.Header.
+		Foreground(lipgloss.Color("240")).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("238")).
+		BorderBottom(true).
+		Bold(false)
+
+	tt.Model.SetStyles(s)
 }
 
 func (tt *TaskTable) Update(msg tea.Msg) tea.Cmd {
