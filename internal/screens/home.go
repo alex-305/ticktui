@@ -52,6 +52,15 @@ func (h *HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
 	}
 }
 
+func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
+	h.activeLoading = true
+	h.completedLoading = true
+	h.activeLoaded = false
+	h.completedLoaded = false
+
+	return h, h.fetchAllData(h.projects[h.activeProject].ID, h.projectIDs)
+}
+
 func (h HomeScreen) fetchCompletedTasksCmd(projectIDs []string) tea.Cmd {
 	return func() tea.Msg {
 		now := time.Now()
@@ -135,13 +144,10 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		p.SetTotalPages(lenProjects)
 		h.paginator = p
 
-		return h, h.fetchAllData(h.projects[h.activeProject].ID, ids)
+		return h.fullFetch()
 
 	case GoBackScreenMsg:
-		h.activeLoading = true
-		h.completedLoading = true
-
-		return h, h.fetchAllData(h.projects[h.activeProject].ID, h.projectIDs)
+		return h.fullFetch()
 	case TaskDeletedMsg:
 		if msg.err != nil {
 			h.err = msg.err
@@ -149,6 +155,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			return h, nil
 		}
 		h.activeLoading = true
+		h.activeLoaded = false
 		return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
 
 	case tea.KeyMsg:
@@ -165,6 +172,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 				h.activeProject++
 				h.paginator.Page++
 				h.activeLoading = true
+				h.activeLoaded = false
 				return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
 			}
 		case "h":
@@ -172,12 +180,11 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 				h.activeProject--
 				h.paginator.Page--
 				h.activeLoading = true
+				h.activeLoaded = false
 				return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
 			}
 		case "r":
-			h.activeLoading = true
-			h.completedLoading = true
-			return h, h.fetchAllData(h.projects[h.activeProject].ID, h.projectIDs)
+			h.fullFetch()
 		case "n":
 			return h, func() tea.Msg {
 				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
@@ -215,13 +222,22 @@ func (h *HomeScreen) View(width, height int) string {
 	if len(h.projects) == 0 {
 		return "\n  Initializing projects..."
 	}
+	activeView := "  Loading tasks..."
+	if h.activeLoaded {
+		activeView = h.taskTable.View()
+	}
+
+	completedView := "  Loading completed tasks..."
+	if h.completedLoaded {
+		completedView = h.completedTaskTable.View()
+	}
 
 	return fmt.Sprintf(
 		"Project: %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
 		h.projects[h.activeProject].Name,
-		h.taskTable.View(),
+		activeView,
 		h.paginator.View(),
-		h.completedTaskTable.View(),
+		completedView,
 		"Controls: [Tab] Focus • [r] Refresh",
 	)
 }
