@@ -2,102 +2,123 @@ package screens
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/types"
-	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 )
-
-type CreateTaskScreen struct {
-	titleInput textinput.Model
-	descInput  textarea.Model
-	focusIndex int
-	ctx        context.AppContext
-	err        error
-}
 
 type taskCreatedMsg struct {
 	task *types.Task
 	err  error
 }
 
-func NewCreateTaskScreen(ctx context.AppContext) Screen {
-	ti := textinput.New()
-	ti.Placeholder = "Enter task title..."
-	ti.Focus()
-	ti.CharLimit = 100
-	ti.Width = 40
+type CreateTaskScreen struct {
+	form    *huh.Form
+	ctx     context.AppContext
+	err     error
+	loading bool
 
-	ta := textarea.New()
-	ta.Placeholder = "Enter task description..."
-	ta.SetHeight(5)
-	ta.SetWidth(40)
-
-	return CreateTaskScreen{
-		titleInput: ti,
-		descInput:  ta,
-		focusIndex: 0,
-		ctx:        ctx,
-	}
+	title    string
+	desc     string
+	priority int
 }
 
-func (h CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
-	var cmds []tea.Cmd
-	var cmd tea.Cmd
+func NewCreateTaskScreen(ctx context.AppContext) Screen {
+	s := &CreateTaskScreen{ctx: ctx}
 
+	s.form = huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Task Title").
+				Value(&s.title).
+				Placeholder("What needs to be done?").
+				Key("title"),
+
+			huh.NewText().
+				Title("Description").
+				Value(&s.desc).
+				Placeholder("Add details...").
+				Lines(5),
+
+			huh.NewSelect[int]().
+				Title("Priority").
+				Options(
+					huh.NewOption("None", 0),
+					huh.NewOption("Low", 1),
+					huh.NewOption("Medium", 3),
+					huh.NewOption("High", 5),
+				).
+				Value(&s.priority),
+		),
+	)
+
+	s.form.Init()
+
+	return s
+}
+
+func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyTab, tea.KeyShiftTab:
-			if msg.Type == tea.KeyShiftTab {
-				h.focusIndex--
-			} else {
-				h.focusIndex++
-			}
-
-			if h.focusIndex > 1 {
-				h.focusIndex = 0
-			} else if h.focusIndex < 0 {
-				h.focusIndex = 1
-			}
-
-			if h.focusIndex == 0 {
-				cmd = h.titleInput.Focus()
-				h.descInput.Blur()
-			} else {
-				h.titleInput.Blur()
-				cmd = h.descInput.Focus()
-			}
-			cmds = append(cmds, cmd)
-
-			return h, tea.Batch(cmds...)
-		case tea.KeyCtrlS:
-			title := h.titleInput.Value()
-			desc := h.descInput.Value()
-
-			return h, func() tea.Msg {
-				task, err := h.ctx.TaskService.CreateTask(title, desc)
-				return taskCreatedMsg{task: task, err: err}
-			}
+	case taskCreatedMsg:
+		if msg.err != nil {
+			h.err = msg.err
+			h.loading = false
+			return h, nil
+		}
+		return h, func() tea.Msg {
+			return ChangeScreenMsg{NewScreen: NewHomeScreen(h.ctx)}
 		}
 	}
 
-	if h.focusIndex == 0 {
-		h.titleInput, cmd = h.titleInput.Update(msg)
-	} else {
-		h.descInput, cmd = h.descInput.Update(msg)
+	form, cmd := h.form.Update(msg)
+	if f, ok := form.(*huh.Form); ok {
+		h.form = f
 	}
-	cmds = append(cmds, cmd)
 
-	return h, tea.Batch(cmds...)
+	if h.form.State == huh.StateCompleted && !h.loading {
+		h.loading = true
+		title := h.title
+		desc := h.desc
+		return h, func() tea.Msg {
+			task, err := h.ctx.TaskService.CreateTask(title, desc)
+			return taskCreatedMsg{task: task, err: err}
+		}
+	}
+
+	if msg, ok := msg.(tea.KeyMsg); ok && msg.Type == tea.KeyEsc {
+		return h, func() tea.Msg {
+			return ChangeScreenMsg{NewScreen: NewHomeScreen(h.ctx)}
+		}
+	}
+
+	return h, cmd
 }
 
-func (h CreateTaskScreen) View(width, height int) string {
+func (h *CreateTaskScreen) View(width, height int) string {
+	if h.loading {
+		return "\n  ⏳ Creating task..."
+	}
+
+	var errMsg string
+	if h.err != nil {
+		re := regexp.MustCompile(`"errorMessage"\s*:\s*"([^"]*)"`)
+		matches := re.FindStringSubmatch(h.err.Error())
+
+		errMsg = "❌ Error: "
+
+		if len(matches) > 0 {
+			errMsg = errMsg + matches[1]
+		} else {
+			errMsg = errMsg + "Unknown"
+		}
+	}
+
 	return fmt.Sprintf(
-		"New Task\n\nTitle:\n%s\n\nDescription:\n%s\n\n[Ctrl+S] Submit • [Tab] Next field • [Shift+Tab] Prev field",
-		h.titleInput.View(),
-		h.descInput.View(),
+		" Create New Task\n\n%s\n%s\n [Esc] Cancel",
+		h.form.View(),
+		errMsg,
 	)
 }

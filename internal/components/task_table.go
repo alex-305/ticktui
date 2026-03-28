@@ -59,7 +59,6 @@ func NewTaskTable(tasks []types.Task, width int) TaskTable {
 	return TaskTable{Model: t}
 }
 
-// Simple helper to make priorities readable
 func renderPriority(p int) string {
 	switch p {
 	case 5:

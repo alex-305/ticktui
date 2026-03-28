@@ -56,6 +56,9 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "r":
+			h.loading = true
+			return h, h.fetchTasksCmd()
 		case "n":
 			return h, func() tea.Msg {
 				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx)}
@@ -75,7 +78,7 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 
 func (h HomeScreen) View(width, height int) string {
 	if h.err != nil {
-		return fmt.Sprintf("\n  ❌ Error: %v\n\n [q] Quit", h.err)
+		return fmt.Sprintf("\n Error: %v\n\n [q] Quit", h.err)
 	}
 
 	if !h.loaded {
@@ -83,7 +86,7 @@ func (h HomeScreen) View(width, height int) string {
 	}
 
 	return fmt.Sprintf(
-		" TickTUI - My Tasks\n\n%s\n\n [n] New Task • [ctrl + c] Quit",
+		"TickTUI - My Tasks\n\n%s\n\n[r] Refresh [n] New Task • [ctrl + c] Quit",
 		h.taskTable.View(),
 	)
 }
