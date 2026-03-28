@@ -11,6 +11,7 @@ import (
 
 type TaskTable struct {
 	Model table.Model
+	Tasks []types.Task
 }
 
 func NewTaskTable(tasks []types.Task, width int) TaskTable {
@@ -56,7 +57,7 @@ func NewTaskTable(tasks []types.Task, width int) TaskTable {
 		Bold(false)
 	t.SetStyles(s)
 
-	return TaskTable{Model: t}
+	return TaskTable{Model: t, Tasks: tasks}
 }
 
 func renderPriority(p int) string {
@@ -76,6 +77,22 @@ func (tt *TaskTable) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	tt.Model, cmd = tt.Model.Update(msg)
 	return cmd
+}
+
+func (tt *TaskTable) GetSelectedTask() (types.Task, bool) {
+
+	if len(tt.Tasks) == 0 {
+		return types.Task{}, false
+	}
+
+	currIndex := tt.Model.Cursor()
+
+	if currIndex < 0 || currIndex >= len(tt.Tasks) {
+		return types.Task{}, false
+	}
+
+	return tt.Tasks[currIndex], true
+
 }
 
 func (tt TaskTable) View() string {

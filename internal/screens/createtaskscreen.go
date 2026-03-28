@@ -6,6 +6,7 @@ import (
 
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/types"
+	"github.com/alex-305/ticktui/internal/types/task"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -23,7 +24,7 @@ type CreateTaskScreen struct {
 
 	title    string
 	desc     string
-	priority int
+	priority task.Priority
 }
 
 func NewCreateTaskScreen(ctx context.AppContext) Screen {
@@ -43,13 +44,13 @@ func NewCreateTaskScreen(ctx context.AppContext) Screen {
 				Placeholder("Add details...").
 				Lines(5),
 
-			huh.NewSelect[int]().
+			huh.NewSelect[task.Priority]().
 				Title("Priority").
 				Options(
-					huh.NewOption("None", 0),
-					huh.NewOption("Low", 1),
-					huh.NewOption("Medium", 3),
-					huh.NewOption("High", 5),
+					huh.NewOption("None", task.PriorityNone),
+					huh.NewOption("Low", task.PriorityLow),
+					huh.NewOption("Medium", task.PriorityMedium),
+					huh.NewOption("High", task.PriorityHigh),
 				).
 				Value(&s.priority),
 		),
@@ -80,10 +81,8 @@ func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.C
 
 	if h.form.State == huh.StateCompleted && !h.loading {
 		h.loading = true
-		title := h.title
-		desc := h.desc
 		return h, func() tea.Msg {
-			task, err := h.ctx.TaskService.CreateTask(title, desc)
+			task, err := h.ctx.TaskService.CreateTask(h.title, h.desc, h.priority)
 			return taskCreatedMsg{task: task, err: err}
 		}
 	}
