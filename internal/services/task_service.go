@@ -14,11 +14,12 @@ func NewTaskService(client *api.Client) *TaskService {
 	return &TaskService{client: client}
 }
 
-func (s *TaskService) CreateTask(title, description string, priority task.Priority) (*types.Task, error) {
+func (s *TaskService) CreateTask(title, description string, priority task.Priority, projectID string) (*types.Task, error) {
 	task := types.Task{
-		Title:    title,
-		Desc:     description,
-		Priority: priority,
+		Title:     title,
+		Desc:      description,
+		Priority:  priority,
+		ProjectID: projectID,
 	}
 
 	return s.client.CreateTask(&task)

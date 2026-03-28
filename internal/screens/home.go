@@ -120,7 +120,7 @@ func (h HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			return h, h.fetchTasksCmd(h.projects[h.activeProject].ID)
 		case "n":
 			return h, func() tea.Msg {
-				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx)}
+				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
 			}
 		case "x":
 			selectedTask, ok := h.taskTable.GetSelectedTask()

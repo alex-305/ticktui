@@ -22,13 +22,15 @@ type CreateTaskScreen struct {
 	err     error
 	loading bool
 
+	projectID string
+
 	title    string
 	desc     string
 	priority task.Priority
 }
 
-func NewCreateTaskScreen(ctx context.AppContext) Screen {
-	s := &CreateTaskScreen{ctx: ctx}
+func NewCreateTaskScreen(ctx context.AppContext, projectID string) Screen {
+	s := &CreateTaskScreen{ctx: ctx, projectID: projectID}
 
 	s.form = huh.NewForm(
 		huh.NewGroup(
@@ -82,7 +84,7 @@ func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.C
 	if h.form.State == huh.StateCompleted && !h.loading {
 		h.loading = true
 		return h, func() tea.Msg {
-			task, err := h.ctx.TaskService.CreateTask(h.title, h.desc, h.priority)
+			task, err := h.ctx.TaskService.CreateTask(h.title, h.desc, h.priority, h.projectID)
 			return taskCreatedMsg{task: task, err: err}
 		}
 	}
