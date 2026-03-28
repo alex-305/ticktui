@@ -138,17 +138,16 @@ func (c *Client) ListTasks(projectID string) ([]types.Task, error) {
 }
 
 func (c *Client) ListCompletedTasks(projectIDs []string, startDate, endDate types.TickTickTime) ([]types.Task, error) {
-	c.http.SetDebug(true)
 	var tasks []types.Task
 
-	// stDate, err := startDate.MarshalJSONWithMS()
-	// eDate, err := endDate.MarshalJSONWithMS()
+	stDate := startDate.ToMSFormat()
+	eDate := endDate.ToMSFormat()
 
 	resp, err := c.http.R().
 		SetResult(&tasks).
 		SetBody(map[string]any{
-			"startDate": "2020-03-01T00:58:20.000+0000",
-			"endDate":   "2026-03-05T10:58:20.000+0000"},
+			"startDate": stDate,
+			"endDate":   eDate},
 		).
 		Post("/task/completed")
 

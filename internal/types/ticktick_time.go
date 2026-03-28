@@ -33,8 +33,8 @@ func (t TickTickTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(time.Time(t).Format("2006-01-02T15:04:05-0700"))
 }
 
-func (t TickTickTime) MarshalJSONWithMS() ([]byte, error) {
-	return json.Marshal(time.Time(t).Format("2006-01-02T15:04:05.000-0700"))
+func (t TickTickTime) ToMSFormat() string {
+	return time.Time(t).Format("2006-01-02T15:04:05.000-0700")
 }
 
 func (t TickTickTime) String() string {
