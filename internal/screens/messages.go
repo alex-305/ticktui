@@ -10,5 +10,17 @@ type GoBackScreenMsg struct{}
 
 type TaskDeletedMsg struct{ err error }
 
-type ActiveTaskListMsg []types.Task
-type CompletedTaskListMsg []types.Task
+type ActiveTaskListMsg struct {
+	tasks []types.Task
+	err   error
+}
+
+type CompletedTaskListMsg struct {
+	tasks []types.Task
+	err   error
+}
+
+type ProjectsLoadedMsg struct {
+	projects []types.Project
+	err      error
+}

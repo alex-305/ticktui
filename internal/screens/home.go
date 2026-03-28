@@ -57,9 +57,9 @@ func (h HomeScreen) fetchCompletedTasksCmd(projectIDs []string) tea.Cmd {
 		now := time.Now()
 		tasks, err := h.ctx.APIClient.ListCompletedTasks(projectIDs, types.TickTickTime(now.AddDate(0, 0, -4000)), types.TickTickTime(now))
 		if err != nil {
-			return err
+			return CompletedTaskListMsg{tasks: tasks, err: err}
 		}
-		return CompletedTaskListMsg(tasks)
+		return CompletedTaskListMsg{tasks: tasks, err: nil}
 	}
 }
 
@@ -67,9 +67,9 @@ func (h *HomeScreen) fetchActiveTasksCmd(projectID string) tea.Cmd {
 	return func() tea.Msg {
 		tasks, err := h.ctx.APIClient.ListTasks(projectID)
 		if err != nil {
-			return err
+			return ActiveTaskListMsg{tasks: tasks, err: err}
 		}
-		return ActiveTaskListMsg(tasks)
+		return ActiveTaskListMsg{tasks: tasks, err: nil}
 	}
 }
 
@@ -84,9 +84,9 @@ func (h *HomeScreen) fetchProjectsCmd() tea.Cmd {
 	return func() tea.Msg {
 		projects, err := h.ctx.APIClient.ListProjects()
 		if err != nil {
-			return err
+			return ProjectsLoadedMsg{projects: projects, err: err}
 		}
-		return projects
+		return ProjectsLoadedMsg{projects: projects, err: nil}
 	}
 }
 
@@ -101,31 +101,38 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case ActiveTaskListMsg:
-		h.taskTable = components.NewTaskTable(msg, width)
+		if msg.err != nil {
+			h.err = msg.err
+			return h, nil
+		}
+		h.taskTable = components.NewTaskTable(msg.tasks, width)
 		h.activeLoading = false
 		h.activeLoaded = true
 		return h, nil
 	case CompletedTaskListMsg:
-		h.completedTaskTable = components.NewTaskTable(msg, width)
+		if msg.err != nil {
+			h.err = msg.err
+			return h, nil
+		}
+		h.completedTaskTable = components.NewTaskTable(msg.tasks, width)
 		h.completedLoading = false
 		h.completedLoaded = true
 		return h, nil
 
-	case error:
-		h.activeLoading = false
-		h.completedLoading = false
-		h.err = msg
-		return h, nil
-
-	case []types.Project:
-		h.projects = msg
-		ids := make([]string, len(msg))
-		for i, p := range msg {
+	case ProjectsLoadedMsg:
+		if msg.err != nil {
+			h.err = msg.err
+			return h, nil
+		}
+		h.projects = msg.projects
+		lenProjects := len(h.projects)
+		ids := make([]string, lenProjects)
+		for i, p := range h.projects {
 			ids[i] = p.ID
 		}
 		h.projectIDs = ids
 		p := paginator.New()
-		p.SetTotalPages(len(msg))
+		p.SetTotalPages(lenProjects)
 		h.paginator = p
 
 		return h, h.fetchAllData(h.projects[h.activeProject].ID, ids)
