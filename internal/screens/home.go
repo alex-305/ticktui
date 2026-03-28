@@ -248,6 +248,6 @@ func (h *HomeScreen) View(width, height int) string {
 		h.activeTaskTable.View(),
 		h.paginator.View(),
 		h.completedTaskTable.View(),
-		"Controls: [Tab] Focus • [r] Refresh",
+		"Controls: [Tab] Focus • [r] Refresh • [n] New Task • [x] Delete Task • [c] Complete Task",
 	)
 }
