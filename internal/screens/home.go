@@ -52,6 +52,13 @@ func (h *HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
 	}
 }
 
+func (h *HomeScreen) completeTaskCmd(task types.Task) tea.Cmd {
+	return func() tea.Msg {
+		err := h.ctx.APIClient.CompleteTask(task.ProjectID, task.ID)
+		return TaskDeletedMsg{err}
+	}
+}
+
 func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
 	h.activeLoading = true
 	h.completedLoading = true
@@ -196,6 +203,13 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 			}
 
 			return h, h.deleteTaskCmd(selectedTask)
+		case "c":
+			selectedTask, ok := h.taskTable.GetSelectedTask()
+			if !ok {
+				return h, nil
+			}
+
+			return h, h.completeTaskCmd(selectedTask)
 		case "ctrl+c":
 			return h, tea.Quit
 		}
