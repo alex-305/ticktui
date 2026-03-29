@@ -2,12 +2,13 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/alex-305/ticktui/internal/api"
+	"github.com/alex-305/ticktui/internal/config"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
+	"github.com/alex-305/ticktui/internal/screens/authscreen"
 	"github.com/alex-305/ticktui/internal/screens/homescreen"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -23,23 +24,32 @@ type Model struct {
 }
 
 func NewModel() *Model {
-	client, err := api.GetClient()
-
-	if err != nil {
-		log.Fatal("Client not working")
-	}
+	client, _ := api.GetClient()
 
 	ctx := context.AppContext{
 		APIClient: client,
 	}
+
+	var initialScreen screens.Screen
+
+	_, err := config.LoadToken()
+	if err != nil {
+		initialScreen = authscreen.NewAuthScreen(ctx)
+	} else {
+		initialScreen = homescreen.NewHomeScreen(ctx)
+	}
+
 	return &Model{
-		current: homescreen.NewHomeScreen(ctx),
+		current: initialScreen,
 		history: []screens.Screen{},
 		ctx:     ctx,
 	}
 }
 
 func (m *Model) Init() tea.Cmd {
+	if m.current != nil {
+		return m.current.Init()
+	}
 	return nil
 }
 
@@ -48,14 +58,24 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case screens.ChangeScreenMsg:
 		m.history = append(m.history, m.current)
 		m.current = msg.NewScreen
-		return m, nil
+		return m, m.current.Init()
+	case screens.ChangeScreenMsgNoHistory:
+		m.history = []screens.Screen{}
+		m.current = msg.NewScreen
+		return m, m.current.Init()
 	case screens.GoBackScreenMsg:
-		navigateBackAScreen(m)
+		if len(m.history) > 0 {
+			lastIndex := len(m.history) - 1
+			lastPage := m.history[lastIndex]
+			m.history = m.history[:lastIndex]
+
+			m.current = lastPage
+			return m, m.current.Init()
+		}
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-
-		return m.updateScreen(msg)
 
 	case tea.KeyMsg:
 		switch msg.String() {

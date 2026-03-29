@@ -20,6 +20,10 @@ func (h *HomeScreen) getUnfocusedTable() *components.TaskTable {
 }
 
 func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
+	if len(h.projects) == 0 {
+		return h, nil
+	}
+
 	h.activeLoading = true
 	h.completedLoading = true
 	h.activeLoaded = false

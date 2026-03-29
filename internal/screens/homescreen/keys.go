@@ -55,8 +55,6 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd) {
 		}
 
 		return h, h.completeTaskCmd(selectedTask)
-	case "ctrl+c":
-		return h, tea.Quit
 	}
 
 	return h, nil

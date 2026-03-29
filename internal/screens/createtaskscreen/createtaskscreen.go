@@ -64,56 +64,60 @@ func NewCreateTaskScreen(ctx context.AppContext, projectID string) screens.Scree
 	return s
 }
 
-func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
+func (ct *CreateTaskScreen) Init() tea.Cmd {
+	return nil
+}
+
+func (ct *CreateTaskScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
 	switch msg := msg.(type) {
 	case taskCreatedMsg:
 		if msg.err != nil {
-			h.err = msg.err
-			h.loading = false
-			return h, nil
+			ct.err = msg.err
+			ct.loading = false
+			return ct, nil
 		}
-		return h, func() tea.Msg {
+		return ct, func() tea.Msg {
 			return screens.GoBackScreenMsg{}
 		}
 	}
 
-	form, cmd := h.form.Update(msg)
+	form, cmd := ct.form.Update(msg)
 	if f, ok := form.(*huh.Form); ok {
-		h.form = f
+		ct.form = f
 	}
 
-	if h.form.State == huh.StateCompleted && !h.loading {
-		h.loading = true
-		return h, func() tea.Msg {
+	if ct.form.State == huh.StateCompleted && !ct.loading {
+		ct.loading = true
+		return ct, func() tea.Msg {
 
-			task, err := h.ctx.APIClient.CreateTask(&types.Task{
-				Title:     h.title,
-				Desc:      h.desc,
-				Priority:  h.priority,
-				ProjectID: h.projectID,
+			task, err := ct.ctx.APIClient.CreateTask(&types.Task{
+				Title:     ct.title,
+				Desc:      ct.desc,
+				Priority:  ct.priority,
+				ProjectID: ct.projectID,
 			})
 			return taskCreatedMsg{task: task, err: err}
 		}
 	}
 
 	if msg, ok := msg.(tea.KeyMsg); ok && msg.Type == tea.KeyEsc {
-		return h, func() tea.Msg {
+		return ct, func() tea.Msg {
 			return screens.GoBackScreenMsg{}
 		}
 	}
 
-	return h, cmd
+	return ct, cmd
 }
 
-func (h *CreateTaskScreen) View(width, height int) string {
-	if h.loading {
+func (ct *CreateTaskScreen) View(width, height int) string {
+	if ct.loading {
 		return "\n  ⏳ Creating task..."
 	}
 
 	var errMsg string
-	if h.err != nil {
+	if ct.err != nil {
 		re := regexp.MustCompile(`"errorMessage"\s*:\s*"([^"]*)"`)
-		matches := re.FindStringSubmatch(h.err.Error())
+		matches := re.FindStringSubmatch(ct.err.Error())
 
 		errMsg = "❌ Error: "
 
@@ -126,7 +130,7 @@ func (h *CreateTaskScreen) View(width, height int) string {
 
 	return fmt.Sprintf(
 		" Create New Task\n\n%s\n%s\n [Esc] Cancel",
-		h.form.View(),
+		ct.form.View(),
 		errMsg,
 	)
 }

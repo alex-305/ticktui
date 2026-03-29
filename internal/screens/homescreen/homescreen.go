@@ -46,14 +46,12 @@ func NewHomeScreen(ctx context.AppContext) screens.Screen {
 	}
 }
 
+func (h *HomeScreen) Init() tea.Cmd {
+	h.activeLoading = true
+	return h.fetchProjectsCmd()
+}
+
 func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
-	var cmds []tea.Cmd
-
-	if !h.activeLoaded && !h.activeLoading && h.err == nil {
-		h.activeLoading = true
-		return h, h.fetchProjectsCmd()
-	}
-
 	switch msg := msg.(type) {
 
 	case ActiveTaskListMsg:
@@ -121,8 +119,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 		return h.handleKeyMsg(msg)
 	}
 
-	h.getFocusedTable().Update(msg)
-	return h, tea.Batch(cmds...)
+	return h, h.getFocusedTable().Update(msg)
 }
 
 func (h *HomeScreen) View(width, height int) string {

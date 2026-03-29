@@ -9,14 +9,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+const appName = "ticktui"
+
 type Config struct {
 	DefaultProjectID    string `mapstructure:"default_project_id"`
 	DefaultProjectColor string `mapstructure:"default_project_color"`
 }
 
 var (
-	configPath = filepath.Join(xdg.ConfigHome, "tickli", "config.yaml")
-	tokenPath  = filepath.Join(xdg.DataHome, "tickli", "token")
+	configPath = filepath.Join(xdg.ConfigHome, appName, "config.yaml")
+	tokenPath  = filepath.Join(xdg.DataHome, appName, "token")
 )
 
 func InitConfig() error {
@@ -65,9 +67,6 @@ func Save(cfg *Config) error {
 func LoadToken() (string, error) {
 	data, err := os.ReadFile(tokenPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
 		return "", err
 	}
 
