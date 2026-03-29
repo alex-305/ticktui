@@ -2,7 +2,6 @@ package screens
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/alex-305/ticktui/internal/components"
 	"github.com/alex-305/ticktui/internal/context"
@@ -43,80 +42,6 @@ func NewHomeScreen(ctx context.AppContext) Screen {
 		activeLoading:    false,
 		completedLoaded:  false,
 		completedLoading: false,
-	}
-}
-func (h *HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
-	return func() tea.Msg {
-		err := h.ctx.APIClient.DeleteTask(task.ProjectID, task.ID)
-		return TaskDeletedMsg{err}
-	}
-}
-
-func (h *HomeScreen) completeTaskCmd(task types.Task) tea.Cmd {
-	return func() tea.Msg {
-		err := h.ctx.APIClient.CompleteTask(task.ProjectID, task.ID)
-		return TaskCompletedMsg{err}
-	}
-}
-
-func (h *HomeScreen) getFocusedTable() *components.TaskTable {
-	if h.focus == FocusActive {
-		return &h.activeTaskTable
-	}
-	return &h.completedTaskTable
-}
-
-func (h *HomeScreen) getUnfocusedTable() *components.TaskTable {
-	if h.focus != FocusActive {
-		return &h.activeTaskTable
-	}
-	return &h.completedTaskTable
-}
-
-func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
-	h.activeLoading = true
-	h.completedLoading = true
-	h.activeLoaded = false
-	h.completedLoaded = false
-
-	return h, h.fetchAllData(h.projects[h.activeProject].ID, h.projectIDs)
-}
-
-func (h HomeScreen) fetchCompletedTasksCmd(projectIDs []string) tea.Cmd {
-	return func() tea.Msg {
-		now := time.Now()
-		tasks, err := h.ctx.APIClient.ListCompletedTasks(projectIDs, types.TickTickTime(now.AddDate(0, 0, -4000)), types.TickTickTime(now))
-		if err != nil {
-			return CompletedTaskListMsg{tasks: tasks, err: err}
-		}
-		return CompletedTaskListMsg{tasks: tasks, err: nil}
-	}
-}
-
-func (h *HomeScreen) fetchActiveTasksCmd(projectID string) tea.Cmd {
-	return func() tea.Msg {
-		tasks, err := h.ctx.APIClient.ListTasks(projectID)
-		if err != nil {
-			return ActiveTaskListMsg{tasks: tasks, err: err}
-		}
-		return ActiveTaskListMsg{tasks: tasks, err: nil}
-	}
-}
-
-func (h *HomeScreen) fetchAllData(projectID string, allProjectIDs []string) tea.Cmd {
-	return tea.Batch(
-		h.fetchCompletedTasksCmd(allProjectIDs),
-		h.fetchActiveTasksCmd(projectID),
-	)
-}
-
-func (h *HomeScreen) fetchProjectsCmd() tea.Cmd {
-	return func() tea.Msg {
-		projects, err := h.ctx.APIClient.ListProjects()
-		if err != nil {
-			return ProjectsLoadedMsg{projects: projects, err: err}
-		}
-		return ProjectsLoadedMsg{projects: projects, err: nil}
 	}
 }
 
@@ -192,61 +117,10 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 		return h.fullFetch()
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "tab":
-			if h.focus == FocusActive {
-				h.focus = FocusCompleted
-			} else {
-				h.focus = FocusActive
-			}
-			h.getFocusedTable().ApplyActiveStyle()
-			h.getUnfocusedTable().ApplyInactiveStyle()
-			return h, nil
-		case "l":
-			if h.activeProject < len(h.projects)-1 {
-				h.activeProject++
-				h.paginator.Page++
-				h.activeLoading = true
-				h.activeLoaded = false
-				return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
-			}
-		case "h":
-			if h.activeProject > 0 {
-				h.activeProject--
-				h.paginator.Page--
-				h.activeLoading = true
-				h.activeLoaded = false
-				return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
-			}
-		case "r":
-			h.getFocusedTable().ApplyActiveStyle()
-			h.getUnfocusedTable().ApplyInactiveStyle()
-			return h.fullFetch()
-		case "n":
-			return h, func() tea.Msg {
-				return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
-			}
-		case "x":
-			selectedTask, ok := h.getFocusedTable().GetSelectedTask()
-			if !ok {
-				return h, nil
-			}
-
-			return h, h.deleteTaskCmd(selectedTask)
-		case "c":
-			selectedTask, ok := h.activeTaskTable.GetSelectedTask()
-			if !ok {
-				return h, nil
-			}
-
-			return h, h.completeTaskCmd(selectedTask)
-		case "ctrl+c":
-			return h, tea.Quit
-		}
+		return h.handleKeyMsg(msg)
 	}
 
 	h.getFocusedTable().Update(msg)
-
 	return h, tea.Batch(cmds...)
 }
 
