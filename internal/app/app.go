@@ -8,6 +8,7 @@ import (
 	"github.com/alex-305/ticktui/internal/api"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
+	"github.com/alex-305/ticktui/internal/screens/homescreen"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -32,7 +33,7 @@ func NewModel() *Model {
 		APIClient: client,
 	}
 	return &Model{
-		current: screens.NewHomeScreen(ctx),
+		current: homescreen.NewHomeScreen(ctx),
 		history: []screens.Screen{},
 		ctx:     ctx,
 	}

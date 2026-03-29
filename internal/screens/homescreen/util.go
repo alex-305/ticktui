@@ -1,4 +1,4 @@
-package screens
+package homescreen
 
 import (
 	"github.com/alex-305/ticktui/internal/components"

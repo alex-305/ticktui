@@ -1,10 +1,11 @@
-package screens
+package homescreen
 
 import (
 	"fmt"
 
 	"github.com/alex-305/ticktui/internal/components"
 	"github.com/alex-305/ticktui/internal/context"
+	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/types"
 	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
@@ -35,7 +36,7 @@ type HomeScreen struct {
 	err              error
 }
 
-func NewHomeScreen(ctx context.AppContext) Screen {
+func NewHomeScreen(ctx context.AppContext) screens.Screen {
 	return &HomeScreen{
 		ctx:              ctx,
 		activeLoaded:     false,
@@ -45,7 +46,7 @@ func NewHomeScreen(ctx context.AppContext) Screen {
 	}
 }
 
-func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
+func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	if !h.activeLoaded && !h.activeLoading && h.err == nil {
@@ -99,7 +100,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
 
 		return h.fullFetch()
 
-	case GoBackScreenMsg:
+	case screens.GoBackScreenMsg:
 		return h.fullFetch()
 	case TaskDeletedMsg:
 		if msg.err != nil {

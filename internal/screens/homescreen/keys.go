@@ -1,8 +1,12 @@
-package screens
+package homescreen
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"github.com/alex-305/ticktui/internal/screens"
+	"github.com/alex-305/ticktui/internal/screens/createtaskscreen"
+	tea "github.com/charmbracelet/bubbletea"
+)
 
-func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (Screen, tea.Cmd) {
+func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd) {
 
 	switch msg.String() {
 	case "tab":
@@ -36,7 +40,7 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (Screen, tea.Cmd) {
 		return h.fullFetch()
 	case "n":
 		return h, func() tea.Msg {
-			return ChangeScreenMsg{NewScreen: NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
+			return screens.ChangeScreenMsg{NewScreen: createtaskscreen.NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
 		}
 	case "x":
 		selectedTask, ok := h.getFocusedTable().GetSelectedTask()

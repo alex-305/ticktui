@@ -1,10 +1,11 @@
-package screens
+package createtaskscreen
 
 import (
 	"fmt"
 	"regexp"
 
 	"github.com/alex-305/ticktui/internal/context"
+	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/types"
 	"github.com/alex-305/ticktui/internal/types/task"
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,7 +30,7 @@ type CreateTaskScreen struct {
 	priority task.Priority
 }
 
-func NewCreateTaskScreen(ctx context.AppContext, projectID string) Screen {
+func NewCreateTaskScreen(ctx context.AppContext, projectID string) screens.Screen {
 	s := &CreateTaskScreen{ctx: ctx, projectID: projectID}
 
 	s.form = huh.NewForm(
@@ -63,7 +64,7 @@ func NewCreateTaskScreen(ctx context.AppContext, projectID string) Screen {
 	return s
 }
 
-func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.Cmd) {
+func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
 	switch msg := msg.(type) {
 	case taskCreatedMsg:
 		if msg.err != nil {
@@ -72,7 +73,7 @@ func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.C
 			return h, nil
 		}
 		return h, func() tea.Msg {
-			return GoBackScreenMsg{}
+			return screens.GoBackScreenMsg{}
 		}
 	}
 
@@ -97,7 +98,7 @@ func (h *CreateTaskScreen) Update(msg tea.Msg, width, height int) (Screen, tea.C
 
 	if msg, ok := msg.(tea.KeyMsg); ok && msg.Type == tea.KeyEsc {
 		return h, func() tea.Msg {
-			return ChangeScreenMsg{NewScreen: NewHomeScreen(h.ctx)}
+			return screens.GoBackScreenMsg{}
 		}
 	}
 
