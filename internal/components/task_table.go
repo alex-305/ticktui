@@ -84,21 +84,30 @@ func (tt *TaskTable) ApplyActiveStyle() {
 func (tt *TaskTable) ApplyInactiveStyle() {
 	s := table.DefaultStyles()
 
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("240")).
-		Background(lipgloss.Color("235")).
+	// Define a shared "Inactive" color (medium-dark gray)
+	inactiveGray := lipgloss.Color("240")
+
+	// 1. Standard Cell Style (Not selected)
+	s.Cell = s.Cell.
+		Foreground(inactiveGray).
+		Background(lipgloss.NoColor{}).
 		Bold(false)
 
+	// 2. Selected Cell Style
+	// Make it EXACTLY the same as the standard cell
+	s.Selected = s.Cell
+
+	// 3. Header Style
+	// Give this its own identity so it doesn't look like a row
 	s.Header = s.Header.
-		Foreground(lipgloss.Color("240")).
+		Foreground(inactiveGray).
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("238")).
 		BorderBottom(true).
-		Bold(false)
+		Bold(true) // Kept bold so it's clearly a header
 
 	tt.Model.SetStyles(s)
 }
-
 func (tt *TaskTable) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	tt.Model, cmd = tt.Model.Update(msg)

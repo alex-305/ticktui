@@ -259,11 +259,18 @@ func (h *HomeScreen) View(width, height int) string {
 		return "\n  Initializing projects..."
 	}
 
+	var paginatorView string
+	if len(h.projects) > 0 {
+		paginatorView = h.paginator.View()
+	} else {
+		paginatorView = "\n"
+	}
+
 	return fmt.Sprintf(
 		"Project: %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
 		h.projects[h.activeProject].Name,
 		h.activeTaskTable.View(),
-		h.paginator.View(),
+		paginatorView,
 		h.completedTaskTable.View(),
 		"Controls: [Tab] Focus • [r] Refresh • [n] New Task • [x] Delete Task • [c] Complete Task",
 	)
