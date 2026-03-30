@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alex-305/ticktui/internal/api"
+	"github.com/alex-305/ticktui/internal/asciiart"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/screens/homescreen"
@@ -76,19 +77,26 @@ func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 func (s *AuthScreen) View(width, height int) string {
 	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("5"))
 	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
+	logoStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 
-	content := fmt.Sprintf(
+	welcomeStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
+	containerStyle := lipgloss.NewStyle().Align(lipgloss.Center)
+
+	content := welcomeStyle.Render("Welcome to") + "\n"
+	content += logoStyle.Render(asciiart.Logo) + "\n\n"
+
+	content += fmt.Sprintf(
 		"%s\n\nPress [Space] to open TickTick Auth in your browser.\n",
 		titleStyle.Render("Authentication Required"),
 	)
 
 	if s.err != nil {
-		content += "\n\n" + errorStyle.Render(fmt.Sprintf("Error: %v", s.err))
+		content += "\n" + errorStyle.Render(fmt.Sprintf("Error: %v", s.err))
 	}
 
 	if s.submitting {
 		content += "\n\nExchanging code for token..."
 	}
 
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content)
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, containerStyle.Render(content))
 }
