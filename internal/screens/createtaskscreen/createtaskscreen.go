@@ -27,25 +27,38 @@ type CreateTaskScreen struct {
 
 	title    string
 	desc     string
+	dueDate  string
 	priority task.Priority
 }
 
 func NewCreateTaskScreen(ctx context.AppContext, projectID string) screens.Screen {
-	s := &CreateTaskScreen{ctx: ctx, projectID: projectID}
+	ct := &CreateTaskScreen{ctx: ctx, projectID: projectID}
 
-	s.form = huh.NewForm(
+	ct.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Task Title").
-				Value(&s.title).
+				Value(&ct.title).
 				Placeholder("What needs to be done?").
 				Key("title"),
 
 			huh.NewText().
 				Title("Description").
-				Value(&s.desc).
+				Value(&ct.desc).
 				Placeholder("Add details...").
 				Lines(5),
+
+			huh.NewInput().
+				Title("Due Date").
+				Value(&ct.dueDate).
+				Placeholder("YYYY-MM-DD (Optional)").
+				Validate(func(s string) error {
+					if s == "" {
+						return nil
+					}
+					_, err := types.StringToTickTickTime(s)
+					return err
+				}),
 
 			huh.NewSelect[task.Priority]().
 				Title("Priority").
@@ -55,13 +68,13 @@ func NewCreateTaskScreen(ctx context.AppContext, projectID string) screens.Scree
 					huh.NewOption("Medium", task.PriorityMedium),
 					huh.NewOption("High", task.PriorityHigh),
 				).
-				Value(&s.priority),
+				Value(&ct.priority),
 		),
 	)
 
-	s.form.Init()
+	ct.form.Init()
 
-	return s
+	return ct
 }
 
 func (ct *CreateTaskScreen) Init() tea.Cmd {
@@ -90,9 +103,14 @@ func (ct *CreateTaskScreen) Update(msg tea.Msg, width, height int) (screens.Scre
 		ct.loading = true
 		return ct, func() tea.Msg {
 
+			dueDate, err := types.StringToTickTickTime(ct.dueDate)
+			if err != nil {
+				return taskCreatedMsg{task: nil, err: err}
+			}
 			task, err := ct.ctx.APIClient.CreateTask(&types.Task{
 				Title:     ct.title,
 				Desc:      ct.desc,
+				DueDate:   dueDate,
 				Priority:  ct.priority,
 				ProjectID: ct.projectID,
 			})

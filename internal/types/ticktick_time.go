@@ -14,6 +14,17 @@ type DateRange struct {
 	EndDate   TickTickTime `json:"endDate"`
 }
 
+func StringToTickTickTime(s string) (TickTickTime, error) {
+	t, err := time.Parse("2006-01-02", s)
+
+	if err != nil {
+		return TickTickTime{}, err
+	}
+
+	return TickTickTime(t), nil
+
+}
+
 func (t *TickTickTime) UnmarshalJSON(data []byte) error {
 	var timeStr string
 	if err := json.Unmarshal(data, &timeStr); err != nil {
