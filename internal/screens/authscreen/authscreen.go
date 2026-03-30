@@ -5,6 +5,7 @@ import (
 
 	"github.com/alex-305/ticktui/internal/api"
 	"github.com/alex-305/ticktui/internal/asciiart"
+	"github.com/alex-305/ticktui/internal/components"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/screens/homescreen"
@@ -75,8 +76,10 @@ func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 }
 
 func (s *AuthScreen) View(width, height int) string {
+	if s.err != nil {
+		return components.NewErrorBox(s.err, width, height).View()
+	}
 	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("5"))
-	errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
 	logoStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 
 	welcomeStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("7"))
@@ -89,10 +92,6 @@ func (s *AuthScreen) View(width, height int) string {
 		"%s\n\nPress [Space] to open TickTick Auth in your browser.\n",
 		titleStyle.Render("Authentication Required"),
 	)
-
-	if s.err != nil {
-		content += "\n" + errorStyle.Render(fmt.Sprintf("Error: %v", s.err))
-	}
 
 	if s.submitting {
 		content += "\n\nExchanging code for token..."
