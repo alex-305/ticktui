@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/alex-305/ticktui/internal/asciiart"
 	"github.com/alex-305/ticktui/internal/config"
 	"github.com/cli/browser"
 	"github.com/go-resty/resty/v2"
@@ -71,7 +72,7 @@ func startCallbackServer(addr string) (*http.Server, <-chan string, <-chan error
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		if code != "" {
-			// TODO Add a little message maybe with some ascii art would be cool
+			fmt.Fprintf(w, asciiart.Logo+"\n\nSuccessfully authenticated. You can now return to the comfort of your terminal :)")
 			codeChan <- code
 		}
 	})
