@@ -1,6 +1,11 @@
-# ticktui
+  _______ ______ ____ _  _ _______ _    _ _____
+ |__   __|_   _/ ____| |/ /__   __| |  | |_   _|
+    | |    | || |    | ' /   | |  | |  | | | |  
+    | |    | || |    |  |    | |  | |  | | | |  
+    | |   _| || |____|   \   | |  | |__| |_| |_ 
+    |_|  |_____\_____|_|\_\  |_|   \____/|_____|
 
-This is the TickTick tui that helps you stay on top of your tasks even when on the terminal. This project builds off of the idea, structs, & API bindings from [Tickli](https://github.com/Sho0pi/tickli).
+This is TickTick, the tui that helps you stay on top of your tasks even when you're on the terminal. This project builds off of the idea, structs, & API bindings from [Tickli](https://github.com/Sho0pi/tickli).
 
 ## Demo
 
@@ -8,13 +13,14 @@ WIP
 
 ## ✨ Features
 
-- Create Task
-- Delete Task
-- Move task to completed
+- User authentication
+- Create Tasks
+- Delete Tasks
+- Mark tasks completed
 
 ## 🚀 Installation
 
-No releases yet.
+No releases yet but hopefully soon :D
 
 ## 🪄 Usage
 
