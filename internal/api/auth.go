@@ -52,39 +52,31 @@ func GetAccessToken(clientID, clientSecret, code string) (string, error) {
 	return result.AccessToken, nil
 }
 
-func LaunchBrowserAndSaveAuthToken() error {
+func getOAuthCredentials() (string, string, error) {
+	_ = godotenv.Load()
+	id := os.Getenv("TICKTICK_CLIENT_ID")
+	secret := os.Getenv("TICKTICK_CLIENT_SECRET")
 
-	err := godotenv.Load()
-
-	if err != nil {
-		return errors.Errorf("Failed to load environment variables")
+	if id == "" || secret == "" {
+		return "", "", errors.New("missing TICKTICK_CLIENT_ID or TICKTICK_CLIENT_SECRET")
 	}
+	return id, secret, nil
+}
 
-	clientIDEnv := "TICKTICK_CLIENT_ID"
-	clientSecretEnv := "TICKTICK_CLIENT_SECRET"
-	clientID := os.Getenv(clientIDEnv)
-	clientSecret := os.Getenv(clientSecretEnv)
-
-	if clientID == "" {
-		return errors.Errorf("Missing required %s environment variable", clientIDEnv)
-	}
-
-	if clientSecret == "" {
-		return errors.Errorf("Missing required %s environment variable", clientSecretEnv)
-	}
-
-	server := &http.Server{Addr: ":8080"}
-
+func startCallbackServer(addr string) (*http.Server, <-chan string, <-chan error) {
 	codeChan := make(chan string, 1)
 	errChan := make(chan error, 1)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		val := r.URL.Query().Get("code")
-		if val != "" {
-			fmt.Fprintf(w, "Auth successful! You can return to your terminal.")
-			codeChan <- val
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		code := r.URL.Query().Get("code")
+		if code != "" {
+			// TODO Add a little message maybe with some ascii art would be cool
+			codeChan <- code
 		}
 	})
+
+	server := &http.Server{Addr: addr, Handler: mux}
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -92,28 +84,33 @@ func LaunchBrowserAndSaveAuthToken() error {
 		}
 	}()
 
-	authURL := GetAuthURL(clientID)
-	if err := browser.OpenURL(authURL); err != nil {
-		return errors.Errorf("Failed to open browser")
+	return server, codeChan, errChan
+}
+
+func LaunchBrowserAndSaveAuthToken() error {
+	clientID, clientSecret, err := getOAuthCredentials()
+	if err != nil {
+		return err
+	}
+
+	server, codeChan, errChan := startCallbackServer(":8080")
+	defer server.Close()
+
+	if err := browser.OpenURL(GetAuthURL(clientID)); err != nil {
+		return errors.Wrap(err, "failed to open browser")
 	}
 
 	var authCode string
 	select {
 	case authCode = <-codeChan:
-		_ = server.Close()
 	case err := <-errChan:
-		return errors.Errorf("Server error: %v", err)
+		return errors.Wrap(err, "server error")
 	}
 
 	token, err := GetAccessToken(clientID, clientSecret, authCode)
 	if err != nil {
-		return errors.Errorf("Failed to access token")
+		return err
 	}
 
-	err = config.SaveToken(token)
-	if err != nil {
-		return errors.Errorf("Failed to save token")
-	}
-
-	return nil
+	return config.SaveToken(token)
 }

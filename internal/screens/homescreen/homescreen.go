@@ -116,7 +116,14 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 		return h.fullFetch()
 
 	case tea.KeyMsg:
+		if !h.activeLoaded || !h.completedLoaded {
+			return h, nil
+		}
 		return h.handleKeyMsg(msg)
+	}
+
+	if !h.activeLoaded || !h.completedLoaded {
+		return h, nil
 	}
 
 	return h, h.getFocusedTable().Update(msg)
@@ -127,8 +134,8 @@ func (h *HomeScreen) View(width, height int) string {
 		return components.NewErrorBox(h.err, width, height).View()
 	}
 
-	if len(h.projects) == 0 {
-		return "\n  Initializing projects..."
+	if len(h.projects) == 0 || !h.activeLoaded || !h.completedLoaded {
+		return "\n Loading tasks..."
 	}
 
 	var paginatorView string

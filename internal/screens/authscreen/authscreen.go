@@ -43,6 +43,10 @@ func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 	case tea.KeyMsg:
 		switch msg.String() {
 		case " ":
+			if s.submitting {
+				return s, nil
+			}
+			s.submitting = true
 			return s, func() tea.Msg {
 				err := api.LaunchBrowserAndSaveAuthToken()
 				return TokenExchangedMsg{err}
@@ -55,6 +59,13 @@ func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 			return s, nil
 		}
 		return s, func() tea.Msg {
+			freshClient, err := api.GetClient()
+
+			if err != nil {
+
+			}
+			s.ctx.APIClient = freshClient
+
 			return screens.ChangeScreenMsgNoHistory{NewScreen: homescreen.NewHomeScreen(s.ctx)}
 		}
 	}
