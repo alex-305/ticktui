@@ -84,27 +84,21 @@ func (tt *TaskTable) ApplyActiveStyle() {
 func (tt *TaskTable) ApplyInactiveStyle() {
 	s := table.DefaultStyles()
 
-	// Define a shared "Inactive" color (medium-dark gray)
 	inactiveGray := lipgloss.Color("240")
 
-	// 1. Standard Cell Style (Not selected)
 	s.Cell = s.Cell.
 		Foreground(inactiveGray).
 		Background(lipgloss.NoColor{}).
 		Bold(false)
 
-	// 2. Selected Cell Style
-	// Make it EXACTLY the same as the standard cell
 	s.Selected = s.Cell
 
-	// 3. Header Style
-	// Give this its own identity so it doesn't look like a row
 	s.Header = s.Header.
 		Foreground(inactiveGray).
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("238")).
 		BorderBottom(true).
-		Bold(true) // Kept bold so it's clearly a header
+		Bold(true)
 
 	tt.Model.SetStyles(s)
 }
@@ -115,19 +109,16 @@ func (tt *TaskTable) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (tt *TaskTable) GetSelectedTask() (types.Task, bool) {
-
 	if len(tt.Tasks) == 0 {
 		return types.Task{}, false
 	}
 
 	currIndex := tt.Model.Cursor()
-
 	if currIndex < 0 || currIndex >= len(tt.Tasks) {
 		return types.Task{}, false
 	}
 
 	return tt.Tasks[currIndex], true
-
 }
 
 func (tt TaskTable) View() string {
