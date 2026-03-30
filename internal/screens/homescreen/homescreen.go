@@ -119,7 +119,11 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 		if !h.activeLoaded || !h.completedLoaded {
 			return h, nil
 		}
-		return h.handleKeyMsg(msg)
+		s, c, ok := h.handleKeyMsg(msg)
+
+		if ok {
+			return s, c
+		}
 	}
 
 	if !h.activeLoaded || !h.completedLoaded {

@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd) {
+func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd, bool) {
 
 	switch msg.String() {
 	case "tab":
@@ -17,14 +17,14 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd) {
 		}
 		h.getFocusedTable().ApplyActiveStyle()
 		h.getUnfocusedTable().ApplyInactiveStyle()
-		return h, nil
+		return h, nil, true
 	case "l":
 		if h.activeProject < len(h.projects)-1 {
 			h.activeProject++
 			h.paginator.Page++
 			h.activeLoading = true
 			h.activeLoaded = false
-			return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
+			return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID), true
 		}
 	case "h":
 		if h.activeProject > 0 {
@@ -32,30 +32,32 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd) {
 			h.paginator.Page--
 			h.activeLoading = true
 			h.activeLoaded = false
-			return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID)
+			return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID), true
 		}
 	case "r":
 		h.getFocusedTable().ApplyActiveStyle()
 		h.getUnfocusedTable().ApplyInactiveStyle()
-		return h.fullFetch()
+		s, c := h.fullFetch()
+		return s, c, true
 	case "n":
 		return h, func() tea.Msg {
-			return screens.ChangeScreenMsg{NewScreen: createtaskscreen.NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
-		}
+			return screens.ChangeScreenMsg{
+				NewScreen: createtaskscreen.NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
+		}, true
 	case "x":
 		selectedTask, ok := h.getFocusedTable().GetSelectedTask()
 		if !ok {
-			return h, nil
+			return h, nil, true
 		}
-		return h, h.deleteTaskCmd(selectedTask)
+		return h, h.deleteTaskCmd(selectedTask), true
 	case "c":
 		selectedTask, ok := h.activeTaskTable.GetSelectedTask()
 		if !ok {
-			return h, nil
+			return h, nil, true
 		}
 
-		return h, h.completeTaskCmd(selectedTask)
+		return h, h.completeTaskCmd(selectedTask), true
 	}
 
-	return h, nil
+	return h, nil, false
 }
