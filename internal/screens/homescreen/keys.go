@@ -51,12 +51,16 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd, bool
 		}
 		return h, h.deleteTaskCmd(selectedTask), true
 	case "c":
-		selectedTask, ok := h.activeTaskTable.GetSelectedTask()
+		selectedTask, ok := h.getFocusedTable().GetSelectedTask()
 		if !ok {
 			return h, nil, true
 		}
+		if h.focus == FocusActive {
+			return h, h.completeTaskCmd(selectedTask), true
+		} else {
+			return h, h.decompleteTaskCmd(selectedTask), true
+		}
 
-		return h, h.completeTaskCmd(selectedTask), true
 	}
 
 	return h, nil, false

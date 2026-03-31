@@ -7,17 +7,24 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (h *HomeScreen) deleteTaskCmd(task types.Task) tea.Cmd {
+func (h *HomeScreen) deleteTaskCmd(task *types.Task) tea.Cmd {
 	return func() tea.Msg {
 		err := h.ctx.APIClient.DeleteTask(task.ProjectID, task.ID)
 		return TaskDeletedMsg{err}
 	}
 }
 
-func (h *HomeScreen) completeTaskCmd(task types.Task) tea.Cmd {
+func (h *HomeScreen) completeTaskCmd(task *types.Task) tea.Cmd {
 	return func() tea.Msg {
-		err := h.ctx.APIClient.CompleteTask(task.ProjectID, task.ID)
-		return TaskCompletedMsg{err}
+		err := h.ctx.APIClient.CompleteTask(task)
+		return ActionCompletedMsg{err}
+	}
+}
+
+func (h *HomeScreen) decompleteTaskCmd(task *types.Task) tea.Cmd {
+	return func() tea.Msg {
+		err := h.ctx.APIClient.DecompleteTask(task)
+		return ActionCompletedMsg{err}
 	}
 }
 

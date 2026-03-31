@@ -11,10 +11,10 @@ import (
 
 type TaskTable struct {
 	Model table.Model
-	Tasks []types.Task
+	Tasks []*types.Task
 }
 
-func NewTaskTable(tasks []types.Task, width int) TaskTable {
+func NewTaskTable(tasks []*types.Task, width int) TaskTable {
 	columns := []table.Column{
 		{Title: "Title", Width: 25},
 		{Title: "Description", Width: 35},
@@ -108,14 +108,14 @@ func (tt *TaskTable) Update(msg tea.Msg) tea.Cmd {
 	return cmd
 }
 
-func (tt *TaskTable) GetSelectedTask() (types.Task, bool) {
+func (tt *TaskTable) GetSelectedTask() (*types.Task, bool) {
 	if len(tt.Tasks) == 0 {
-		return types.Task{}, false
+		return nil, false
 	}
 
 	currIndex := tt.Model.Cursor()
 	if currIndex < 0 || currIndex >= len(tt.Tasks) {
-		return types.Task{}, false
+		return nil, false
 	}
 
 	return tt.Tasks[currIndex], true

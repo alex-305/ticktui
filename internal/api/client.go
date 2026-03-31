@@ -5,6 +5,7 @@ import (
 
 	"github.com/alex-305/ticktui/internal/config"
 	"github.com/alex-305/ticktui/internal/types"
+	"github.com/alex-305/ticktui/internal/types/task"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
 )
@@ -34,8 +35,8 @@ func GetClient() (*Client, error) {
 	return NewClient(token), nil
 }
 
-func (c *Client) ListProjects() ([]types.Project, error) {
-	var projects []types.Project
+func (c *Client) ListProjects() ([]*types.Project, error) {
+	var projects []*types.Project
 	resp, err := c.http.R().
 		SetResult(&projects).
 		Get("/project")
@@ -48,35 +49,35 @@ func (c *Client) ListProjects() ([]types.Project, error) {
 		return nil, fmt.Errorf("failed to list projects: %s", resp.String())
 	}
 
-	projects = append(projects, types.InboxProject)
+	projects = append(projects, &types.InboxProject)
 
 	return projects, nil
 }
 
-func (c *Client) GetProject(id string) (types.Project, error) {
+func (c *Client) GetProject(id string) (*types.Project, error) {
 	if id == types.InboxProject.ID {
-		return types.InboxProject, nil
+		return &types.InboxProject, nil
 	}
-	var project types.Project
+	var project *types.Project
 	resp, err := c.http.R().
 		SetResult(&project).
 		Get("/project/" + id)
 
 	if err != nil {
-		return types.NullProject, errors.Wrap(err, "getting project")
+		return &types.NullProject, errors.Wrap(err, "getting project")
 	}
 	if resp.IsError() {
-		return types.NullProject, fmt.Errorf("failed to get project: %s", resp.String())
+		return &types.NullProject, fmt.Errorf("failed to get project: %s", resp.String())
 	}
-	if project == types.NullProject {
-		return types.NullProject, fmt.Errorf("project not found: %s", id)
+	if project == &types.NullProject {
+		return &types.NullProject, fmt.Errorf("project not found: %s", id)
 	}
 
 	return project, nil
 }
 
 func (c *Client) GetTask(projectID string, taskID string) (*types.Task, error) {
-	var task types.Task
+	var task *types.Task
 	resp, err := c.http.R().
 		SetResult(&task).
 		Get(fmt.Sprintf("/project/%s/task/%s", projectID, taskID))
@@ -88,12 +89,12 @@ func (c *Client) GetTask(projectID string, taskID string) (*types.Task, error) {
 		return nil, fmt.Errorf("failed to list tasks: %s", resp.String())
 	}
 
-	return &task, nil
+	return task, nil
 }
 
-func (c *Client) ListTasks(projectID string) ([]types.Task, error) {
+func (c *Client) ListTasks(projectID string) ([]*types.Task, error) {
 	var projectData struct {
-		Tasks []types.Task `json:"tasks"`
+		Tasks []*types.Task `json:"tasks"`
 	}
 	resp, err := c.http.R().
 		SetResult(&projectData).
@@ -110,8 +111,8 @@ func (c *Client) ListTasks(projectID string) ([]types.Task, error) {
 	return projectData.Tasks, nil
 }
 
-func (c *Client) ListCompletedTasks(projectIDs []string, startDate, endDate types.TickTickTime) ([]types.Task, error) {
-	var tasks []types.Task
+func (c *Client) ListCompletedTasks(projectIDs []string, startDate, endDate types.TickTickTime) ([]*types.Task, error) {
+	var tasks []*types.Task
 
 	stDate := startDate.ToMSFormat()
 	eDate := endDate.ToMSFormat()
@@ -191,17 +192,17 @@ func (c *Client) UpdateTask(task *types.Task) (*types.Task, error) {
 	return task, nil
 }
 
-func (c *Client) UpdateProject(project types.Project) (types.Project, error) {
+func (c *Client) UpdateProject(project *types.Project) (*types.Project, error) {
 	resp, err := c.http.R().
 		SetBody(project).
 		SetResult(project).
 		Post(fmt.Sprintf("/project/%s", project.ID))
 
 	if err != nil {
-		return types.NullProject, errors.Wrap(err, "updating project")
+		return &types.NullProject, errors.Wrap(err, "updating project")
 	}
 	if resp.IsError() {
-		return types.NullProject, fmt.Errorf("failed to update project: %s", resp.String())
+		return &types.NullProject, fmt.Errorf("failed to update project: %s", resp.String())
 	}
 
 	return project, nil
@@ -221,15 +222,27 @@ func (c *Client) DeleteTask(projectID, taskID string) error {
 	return nil
 }
 
-func (c *Client) CompleteTask(projectID, taskID string) error {
+func (c *Client) CompleteTask(t *types.Task) error {
 	resp, err := c.http.R().
-		Post(fmt.Sprintf("/project/%s/task/%s/complete", projectID, taskID))
+		Post(fmt.Sprintf("/project/%s/task/%s/complete", t.ProjectID, t.ID))
 
 	if err != nil {
 		return errors.Wrap(err, "completing task")
 	}
 	if resp.IsError() {
 		return fmt.Errorf("failed to complete task: %s", resp.String())
+	}
+
+	return nil
+}
+
+func (c *Client) DecompleteTask(t *types.Task) error {
+	t.Status = task.StatusNormal
+	t.CompletedTime = types.TickTickTime{}
+	_, err := c.UpdateTask(t)
+
+	if err != nil {
+		return err
 	}
 
 	return nil

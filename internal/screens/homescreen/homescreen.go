@@ -21,7 +21,7 @@ const (
 
 type HomeScreen struct {
 	ctx           context.AppContext
-	projects      []types.Project
+	projects      []*types.Project
 	projectIDs    []string
 	activeProject int
 
@@ -111,14 +111,8 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 
 	case screens.GoBackScreenMsg:
 		return h.fullFetch()
-	case TaskDeletedMsg:
-		if msg.err != nil {
-			h.err = msg.err
-			h.activeLoading = false
-			return h, nil
-		}
-		return h.fullFetch()
-	case TaskCompletedMsg:
+
+	case ActionCompletedMsg:
 		if msg.err != nil {
 			h.err = msg.err
 			h.activeLoading = false
