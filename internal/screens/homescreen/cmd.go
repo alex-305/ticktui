@@ -10,7 +10,7 @@ import (
 func (h *HomeScreen) deleteTaskCmd(task *types.Task) tea.Cmd {
 	return func() tea.Msg {
 		err := h.ctx.APIClient.DeleteTask(task.ProjectID, task.ID)
-		return TaskDeletedMsg{err}
+		return ActionCompletedMsg{err}
 	}
 }
 

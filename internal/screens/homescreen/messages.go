@@ -9,8 +9,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type TaskDeletedMsg struct{ err error }
-
 type ActiveTaskListMsg struct {
 	tasks []*types.Task
 	err   error
