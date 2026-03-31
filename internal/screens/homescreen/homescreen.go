@@ -66,7 +66,7 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 
 	keyMsg, isKeyMsg := msg.(tea.KeyMsg)
 	if isKeyMsg {
-		if !h.activeLoaded || !h.completedLoaded {
+		if len(h.projects) == 0 {
 			return h, nil
 		}
 		h, c, ok := h.handleKeyMsg(keyMsg)
@@ -104,9 +104,16 @@ func (h *HomeScreen) View(width, height int) string {
 		cKeyString = "Undo Completion"
 	}
 
+	refreshingLabel := ""
+
+	if h.activeLoading || h.completedLoading {
+		refreshingLabel = h.loadingSpinner.View() + " Refreshing..."
+	}
+
 	return fmt.Sprintf(
-		"Project: %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
+		"Project: %s %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
 		h.projects[h.activeProject].Name,
+		refreshingLabel,
 		h.activeTaskTable.View(),
 		paginatorView,
 		h.completedTaskTable.View(),

@@ -26,8 +26,6 @@ func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
 
 	h.activeLoading = true
 	h.completedLoading = true
-	h.activeLoaded = false
-	h.completedLoaded = false
 
 	return h, h.fetchAllData(h.projects[h.activeProject].ID, h.projectIDs)
 }
