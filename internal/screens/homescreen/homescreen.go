@@ -97,12 +97,19 @@ func (h *HomeScreen) View(width, height int) string {
 		paginatorView = "\n"
 	}
 
+	var cKeyString string
+	if h.focus == FocusActive {
+		cKeyString = "Complete Task"
+	} else {
+		cKeyString = "Undo Completion"
+	}
+
 	return fmt.Sprintf(
 		"Project: %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
 		h.projects[h.activeProject].Name,
 		h.activeTaskTable.View(),
 		paginatorView,
 		h.completedTaskTable.View(),
-		"Controls: [Tab] Focus • [r] Refresh • [n] New Task • [x] Delete Task • [c] Complete Task",
+		fmt.Sprintf("Controls: [Tab] Focus • [r] Refresh • [n] New Task • [x] Delete Task • [c] %s", cKeyString),
 	)
 }
