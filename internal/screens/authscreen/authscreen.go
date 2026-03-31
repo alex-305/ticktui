@@ -5,6 +5,7 @@ import (
 
 	"github.com/alex-305/ticktui/internal/asciiart"
 	"github.com/alex-305/ticktui/internal/components"
+	"github.com/alex-305/ticktui/internal/config"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/screens/homescreen"
@@ -50,7 +51,9 @@ func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 			}
 			s.submitting = true
 			return s, func() tea.Msg {
-				err := api.LaunchBrowserAndSaveAuthToken()
+				token, err := api.LaunchBrowserAndSaveAuthToken(fmt.Sprintf("%s\n\nSuccessfully authenticated. You can now return to the comfort of your terminal :)", asciiart.Logo))
+				config.SaveToken(token)
+
 				return TokenExchangedMsg{err}
 			}
 		}
@@ -61,10 +64,14 @@ func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 			return s, nil
 		}
 		return s, func() tea.Msg {
-			freshClient, err := api.GetClient()
+			token, err := config.LoadToken()
+			if err != nil {
+				s.err = msg.err
+			}
+			freshClient, err := api.GetClient(token)
 
 			if err != nil {
-
+				s.err = msg.err
 			}
 			s.ctx.APIClient = freshClient
 

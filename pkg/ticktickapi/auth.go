@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/alex-305/ticktui/internal/asciiart"
-	"github.com/alex-305/ticktui/internal/config"
 	"github.com/cli/browser"
 	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
@@ -64,7 +62,7 @@ func getOAuthCredentials() (string, string, error) {
 	return id, secret, nil
 }
 
-func startCallbackServer(addr string) (*http.Server, <-chan string, <-chan error) {
+func startCallbackServer(addr, successMessage string) (*http.Server, <-chan string, <-chan error) {
 	codeChan := make(chan string, 1)
 	errChan := make(chan error, 1)
 	mux := http.NewServeMux()
@@ -72,7 +70,7 @@ func startCallbackServer(addr string) (*http.Server, <-chan string, <-chan error
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		if code != "" {
-			fmt.Fprintf(w, asciiart.Logo+"\n\nSuccessfully authenticated. You can now return to the comfort of your terminal :)")
+			fmt.Fprint(w, successMessage)
 			codeChan <- code
 		}
 	})
@@ -88,30 +86,30 @@ func startCallbackServer(addr string) (*http.Server, <-chan string, <-chan error
 	return server, codeChan, errChan
 }
 
-func LaunchBrowserAndSaveAuthToken() error {
+func LaunchBrowserAndSaveAuthToken(successMessage string) (string, error) {
 	clientID, clientSecret, err := getOAuthCredentials()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	server, codeChan, errChan := startCallbackServer(":8080")
+	server, codeChan, errChan := startCallbackServer(":8080", successMessage)
 	defer server.Close()
 
 	if err := browser.OpenURL(GetAuthURL(clientID)); err != nil {
-		return errors.Wrap(err, "failed to open browser")
+		return "", errors.Wrap(err, "failed to open browser")
 	}
 
 	var authCode string
 	select {
 	case authCode = <-codeChan:
 	case err := <-errChan:
-		return errors.Wrap(err, "server error")
+		return "", errors.Wrap(err, "server error")
 	}
 
 	token, err := GetAccessToken(clientID, clientSecret, authCode)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return config.SaveToken(token)
+	return token, nil
 }

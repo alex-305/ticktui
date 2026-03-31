@@ -24,16 +24,17 @@ type Model struct {
 }
 
 func NewModel() *Model {
-	client, _ := api.GetClient()
+
+	token, err := config.LoadToken()
+	var initialScreen screens.Screen
+	client, err2 := api.GetClient(token)
 
 	ctx := context.AppContext{
 		APIClient: client,
 	}
 
-	var initialScreen screens.Screen
+	if err != nil || err2 != nil {
 
-	_, err := config.LoadToken()
-	if err != nil {
 		initialScreen = authscreen.NewAuthScreen(ctx)
 	} else {
 		initialScreen = homescreen.NewHomeScreen(ctx)

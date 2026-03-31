@@ -1,9 +1,6 @@
 package ticktickapi
 
 import (
-	"fmt"
-
-	"github.com/alex-305/ticktui/internal/config"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -23,11 +20,6 @@ func NewClient(token string) *Client {
 	return &Client{http: client}
 }
 
-func GetClient() (*Client, error) {
-	token, err := config.LoadToken()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load token: %w", err)
-	}
-
+func GetClient(token string) (*Client, error) {
 	return NewClient(token), nil
 }
