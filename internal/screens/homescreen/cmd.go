@@ -3,7 +3,7 @@ package homescreen
 import (
 	"time"
 
-	"github.com/alex-305/ticktui/internal/types"
+	types "github.com/alex-305/ticktui/pkg/tickticktypes"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

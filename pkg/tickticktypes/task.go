@@ -1,6 +1,6 @@
-package types
+package tickticktypes
 
-import "github.com/alex-305/ticktui/internal/types/task"
+import "github.com/alex-305/ticktui/pkg/tickticktypes/task"
 
 type Task struct {
 	ID            string          `json:"id"`

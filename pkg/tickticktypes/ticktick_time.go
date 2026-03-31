@@ -1,4 +1,4 @@
-package types
+package tickticktypes
 
 import (
 	"encoding/json"

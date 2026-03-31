@@ -3,7 +3,7 @@ package ticktickapi
 import (
 	"fmt"
 
-	"github.com/alex-305/ticktui/internal/types"
+	types "github.com/alex-305/ticktui/pkg/tickticktypes"
 	"github.com/pkg/errors"
 )
 

@@ -3,7 +3,6 @@ package project
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/cobra"
 )
 
 type Kind string
@@ -13,13 +12,6 @@ const (
 	KindNote    Kind = "NOTE"
 	KindUnknown Kind = "UNKNOWN"
 )
-
-var KindCompletion = []cobra.Completion{
-	cobra.CompletionWithDesc(string(KindTask), "Task project"),
-	cobra.CompletionWithDesc(string(KindNote), "Note project"),
-}
-
-var KindCompletionFunc = cobra.FixedCompletions(KindCompletion, cobra.ShellCompDirectiveNoFileComp)
 
 func (k *Kind) UnmarshalJSON(data []byte) error {
 	var kind string

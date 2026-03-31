@@ -6,7 +6,7 @@ import (
 	"github.com/alex-305/ticktui/internal/components"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
-	"github.com/alex-305/ticktui/internal/types"
+	types "github.com/alex-305/ticktui/pkg/tickticktypes"
 	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"

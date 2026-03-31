@@ -3,7 +3,7 @@ package components
 import (
 	"time"
 
-	"github.com/alex-305/ticktui/internal/types"
+	types "github.com/alex-305/ticktui/pkg/tickticktypes"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

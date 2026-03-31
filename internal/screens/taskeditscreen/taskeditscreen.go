@@ -6,8 +6,8 @@ import (
 
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
-	"github.com/alex-305/ticktui/internal/types"
-	"github.com/alex-305/ticktui/internal/types/task"
+	types "github.com/alex-305/ticktui/pkg/tickticktypes"
+	"github.com/alex-305/ticktui/pkg/tickticktypes/task"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )

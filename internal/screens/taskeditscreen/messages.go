@@ -1,6 +1,6 @@
 package taskeditscreen
 
-import "github.com/alex-305/ticktui/internal/types"
+import types "github.com/alex-305/ticktui/pkg/tickticktypes"
 
 type taskCreatedMsg struct {
 	task *types.Task

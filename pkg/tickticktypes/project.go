@@ -1,6 +1,6 @@
-package types
+package tickticktypes
 
-import "github.com/alex-305/ticktui/internal/types/project"
+import "github.com/alex-305/ticktui/pkg/tickticktypes/project"
 
 // InboxProject the Inbox project representation (cause is not returned by the api)
 var InboxProject = Project{

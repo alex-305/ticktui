@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gookit/color"
-	"github.com/spf13/cobra"
 	"strings"
 )
 
@@ -16,15 +15,6 @@ const (
 	PriorityMedium Priority = 3
 	PriorityHigh   Priority = 5
 )
-
-var PriorityCompletion = []cobra.Completion{
-	cobra.CompletionWithDesc("none", "No task"),
-	cobra.CompletionWithDesc("low", "Low task"),
-	cobra.CompletionWithDesc("medium", "Medium task"),
-	cobra.CompletionWithDesc("high", "High task"),
-}
-
-var PriorityCompletionFunc = cobra.FixedCompletions(PriorityCompletion, cobra.ShellCompDirectiveNoFileComp)
 
 var (
 	NonePriorityColor   = color.HEX("#C6C6C6").C256()
