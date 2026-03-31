@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd, bool) {
+func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (*HomeScreen, tea.Cmd, bool) {
 
 	switch msg.String() {
 	case "tab":

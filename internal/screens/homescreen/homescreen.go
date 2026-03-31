@@ -59,75 +59,19 @@ func (h *HomeScreen) Init() tea.Cmd {
 }
 
 func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
-	switch msg := msg.(type) {
+	h, c, ok := h.handleMessages(msg, width, height)
+	if ok {
+		return h, c
+	}
 
-	case spinner.TickMsg:
-		var spinCmd tea.Cmd
-		h.loadingSpinner, spinCmd = h.loadingSpinner.Update(msg)
-		return h, spinCmd
-	case ActiveTaskListMsg:
-		if msg.err != nil {
-			h.err = msg.err
-			return h, nil
-		}
-		h.activeTaskTable = components.NewTaskTable(msg.tasks, width)
-		h.activeLoading = false
-		h.activeLoaded = true
-
-		h.getFocusedTable().ApplyActiveStyle()
-		h.getUnfocusedTable().ApplyInactiveStyle()
-		return h, nil
-	case CompletedTaskListMsg:
-		if msg.err != nil {
-			h.err = msg.err
-			return h, nil
-		}
-		h.completedTaskTable = components.NewTaskTable(msg.tasks, width)
-		h.completedLoading = false
-		h.completedLoaded = true
-
-		h.getFocusedTable().ApplyActiveStyle()
-		h.getUnfocusedTable().ApplyInactiveStyle()
-		return h, nil
-
-	case ProjectsLoadedMsg:
-		if msg.err != nil {
-			h.err = msg.err
-			return h, nil
-		}
-		h.projects = msg.projects
-		lenProjects := len(h.projects)
-		ids := make([]string, lenProjects)
-		for i, p := range h.projects {
-			ids[i] = p.ID
-		}
-		h.projectIDs = ids
-		p := paginator.New()
-		p.SetTotalPages(lenProjects)
-		p.Type = paginator.Dots
-		h.paginator = p
-
-		return h.fullFetch()
-
-	case screens.GoBackScreenMsg:
-		return h.fullFetch()
-
-	case ActionCompletedMsg:
-		if msg.err != nil {
-			h.err = msg.err
-			h.activeLoading = false
-			return h, nil
-		}
-		return h.fullFetch()
-
-	case tea.KeyMsg:
+	keyMsg, isKeyMsg := msg.(tea.KeyMsg)
+	if isKeyMsg {
 		if !h.activeLoaded || !h.completedLoaded {
 			return h, nil
 		}
-		s, c, ok := h.handleKeyMsg(msg)
-
+		h, c, ok := h.handleKeyMsg(keyMsg)
 		if ok {
-			return s, c
+			return h, c
 		}
 	}
 
