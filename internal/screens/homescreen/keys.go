@@ -2,7 +2,7 @@ package homescreen
 
 import (
 	"github.com/alex-305/ticktui/internal/screens"
-	"github.com/alex-305/ticktui/internal/screens/createtaskscreen"
+	"github.com/alex-305/ticktui/internal/screens/taskeditscreen"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -42,7 +42,7 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (screens.Screen, tea.Cmd, bool
 	case "n":
 		return h, func() tea.Msg {
 			return screens.ChangeScreenMsg{
-				NewScreen: createtaskscreen.NewCreateTaskScreen(h.ctx, h.projects[h.activeProject].ID)}
+				NewScreen: taskeditscreen.NewTaskEditScreen(h.ctx, h.projects[h.activeProject].ID, nil)}
 		}, true
 	case "x":
 		selectedTask, ok := h.getFocusedTable().GetSelectedTask()

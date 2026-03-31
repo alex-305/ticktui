@@ -1,4 +1,4 @@
-package createtaskscreen
+package taskeditscreen
 
 import (
 	"fmt"
@@ -12,45 +12,49 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-type taskCreatedMsg struct {
-	task *types.Task
-	err  error
-}
-
-type CreateTaskScreen struct {
+type TaskEditScreen struct {
 	form    *huh.Form
 	ctx     context.AppContext
 	err     error
 	loading bool
 
-	projectID string
+	dueDateString string
+	newTask       bool
 
-	title    string
-	desc     string
-	dueDate  string
-	priority task.Priority
+	task *types.Task
 }
 
-func NewCreateTaskScreen(ctx context.AppContext, projectID string) screens.Screen {
-	ct := &CreateTaskScreen{ctx: ctx, projectID: projectID}
+func NewTaskEditScreen(ctx context.AppContext, projectID string, taskToEdit *types.Task) screens.Screen {
 
-	ct.form = huh.NewForm(
+	tf := &TaskEditScreen{
+		ctx:  ctx,
+		task: taskToEdit,
+	}
+
+	if tf.task == nil {
+		tf.newTask = true
+		tf.task = &types.Task{}
+	}
+
+	tf.task.ProjectID = projectID
+
+	tf.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Task Title").
-				Value(&ct.title).
+				Value(&tf.task.Title).
 				Placeholder("What needs to be done?").
 				Key("title"),
 
 			huh.NewText().
 				Title("Description").
-				Value(&ct.desc).
+				Value(&tf.task.Desc).
 				Placeholder("Add details...").
 				Lines(5),
 
 			huh.NewInput().
 				Title("Due Date").
-				Value(&ct.dueDate).
+				Value(&tf.dueDateString).
 				Placeholder("YYYY-MM-DD (Optional)").
 				Validate(func(s string) error {
 					if s == "" {
@@ -68,74 +72,75 @@ func NewCreateTaskScreen(ctx context.AppContext, projectID string) screens.Scree
 					huh.NewOption("Medium", task.PriorityMedium),
 					huh.NewOption("High", task.PriorityHigh),
 				).
-				Value(&ct.priority),
+				Value(&tf.task.Priority),
 		),
 	)
 
-	ct.form.Init()
+	tf.form.Init()
 
-	return ct
+	return tf
 }
 
-func (ct *CreateTaskScreen) Init() tea.Cmd {
+func (tf *TaskEditScreen) Init() tea.Cmd {
 	return nil
 }
 
-func (ct *CreateTaskScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
+func (tf *TaskEditScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
 	switch msg := msg.(type) {
 	case taskCreatedMsg:
 		if msg.err != nil {
-			ct.err = msg.err
-			ct.loading = false
-			return ct, nil
+			tf.err = msg.err
+			tf.loading = false
+			return tf, nil
 		}
-		return ct, func() tea.Msg {
+		return tf, func() tea.Msg {
 			return screens.GoBackScreenMsg{}
 		}
 	}
 
-	form, cmd := ct.form.Update(msg)
+	form, cmd := tf.form.Update(msg)
 	if f, ok := form.(*huh.Form); ok {
-		ct.form = f
+		tf.form = f
 	}
 
-	if ct.form.State == huh.StateCompleted && !ct.loading {
-		ct.loading = true
-		return ct, func() tea.Msg {
+	if tf.form.State == huh.StateCompleted && !tf.loading {
+		tf.loading = true
+		return tf, func() tea.Msg {
 
-			dueDate, err := types.StringToTickTickTime(ct.dueDate)
-			if err != nil {
-				return taskCreatedMsg{task: nil, err: err}
+			if tf.dueDateString != "" {
+				dueDate, err := types.StringToTickTickTime(tf.dueDateString)
+				if err != nil {
+					return taskCreatedMsg{task: nil, err: err}
+				}
+				tf.task.DueDate = dueDate
 			}
-			task, err := ct.ctx.APIClient.CreateTask(&types.Task{
-				Title:     ct.title,
-				Desc:      ct.desc,
-				DueDate:   dueDate,
-				Priority:  ct.priority,
-				ProjectID: ct.projectID,
-			})
+			task, err := tf.ctx.APIClient.CreateTask(tf.task)
 			return taskCreatedMsg{task: task, err: err}
 		}
 	}
 
 	if msg, ok := msg.(tea.KeyMsg); ok && msg.Type == tea.KeyEsc {
-		return ct, func() tea.Msg {
+		return tf, func() tea.Msg {
 			return screens.GoBackScreenMsg{}
 		}
 	}
 
-	return ct, cmd
+	return tf, cmd
 }
 
-func (ct *CreateTaskScreen) View(width, height int) string {
-	if ct.loading {
-		return "\n  ⏳ Creating task..."
+func (tf *TaskEditScreen) View(width, height int) string {
+	if tf.loading {
+		if tf.newTask {
+			return "\n Creating task..."
+		} else {
+			return "\n Updating task..."
+		}
 	}
 
 	var errMsg string
-	if ct.err != nil {
+	if tf.err != nil {
 		re := regexp.MustCompile(`"errorMessage"\s*:\s*"([^"]*)"`)
-		matches := re.FindStringSubmatch(ct.err.Error())
+		matches := re.FindStringSubmatch(tf.err.Error())
 
 		errMsg = "❌ Error: "
 
@@ -146,9 +151,18 @@ func (ct *CreateTaskScreen) View(width, height int) string {
 		}
 	}
 
+	var headerString string
+
+	if tf.newTask {
+		headerString = "Create New Task"
+	} else {
+		headerString = "Update Task"
+	}
+
 	return fmt.Sprintf(
-		" Create New Task\n\n%s\n%s\n [Esc] Cancel",
-		ct.form.View(),
+		" %s\n\n%s\n%s\n [Esc] Cancel",
+		headerString,
+		tf.form.View(),
 		errMsg,
 	)
 }
