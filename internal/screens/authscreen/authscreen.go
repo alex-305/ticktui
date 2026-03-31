@@ -3,12 +3,12 @@ package authscreen
 import (
 	"fmt"
 
-	"github.com/alex-305/ticktui/internal/api"
 	"github.com/alex-305/ticktui/internal/asciiart"
 	"github.com/alex-305/ticktui/internal/components"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/screens/homescreen"
+	api "github.com/alex-305/ticktui/pkg/ticktickapi"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

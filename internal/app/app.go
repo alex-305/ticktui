@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alex-305/ticktui/internal/api"
 	"github.com/alex-305/ticktui/internal/config"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/screens/authscreen"
 	"github.com/alex-305/ticktui/internal/screens/homescreen"
+	api "github.com/alex-305/ticktui/pkg/ticktickapi"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

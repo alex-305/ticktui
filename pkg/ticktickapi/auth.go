@@ -1,4 +1,4 @@
-package api
+package ticktickapi
 
 import (
 	"encoding/json"
