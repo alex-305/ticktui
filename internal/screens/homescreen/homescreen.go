@@ -8,6 +8,7 @@ import (
 	"github.com/alex-305/ticktui/internal/screens"
 	"github.com/alex-305/ticktui/internal/types"
 	"github.com/charmbracelet/bubbles/paginator"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -27,6 +28,7 @@ type HomeScreen struct {
 	activeTaskTable    components.TaskTable
 	completedTaskTable components.TaskTable
 	paginator          paginator.Model
+	loadingSpinner     spinner.Model
 	focus              Focus
 
 	activeLoaded     bool
@@ -43,17 +45,26 @@ func NewHomeScreen(ctx context.AppContext) screens.Screen {
 		activeLoading:    false,
 		completedLoaded:  false,
 		completedLoading: false,
+		loadingSpinner:   spinner.New(),
 	}
 }
 
 func (h *HomeScreen) Init() tea.Cmd {
 	h.activeLoading = true
-	return h.fetchProjectsCmd()
+	h.loadingSpinner.Spinner = spinner.Dot
+
+	return tea.Batch(
+		h.fetchProjectsCmd(),
+		h.loadingSpinner.Tick)
 }
 
 func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
 	switch msg := msg.(type) {
 
+	case spinner.TickMsg:
+		var spinCmd tea.Cmd
+		h.loadingSpinner, spinCmd = h.loadingSpinner.Update(msg)
+		return h, spinCmd
 	case ActiveTaskListMsg:
 		if msg.err != nil {
 			h.err = msg.err
@@ -137,9 +148,8 @@ func (h *HomeScreen) View(width, height int) string {
 	if h.err != nil {
 		return components.NewErrorBox(h.err, width, height).View()
 	}
-
 	if len(h.projects) == 0 || !h.activeLoaded || !h.completedLoaded {
-		return "\n Loading tasks..."
+		return fmt.Sprintf("\n %s Loading tasks...", h.loadingSpinner.View())
 	}
 
 	var paginatorView string
