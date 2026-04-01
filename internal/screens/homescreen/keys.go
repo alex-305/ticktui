@@ -21,7 +21,7 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (*HomeScreen, tea.Cmd, bool) {
 	case "l":
 		if h.activeProject < len(h.projects)-1 {
 			h.activeProject++
-			h.paginator.Page++
+			h.tabs.SetActive(h.activeProject)
 			h.activeLoading = true
 			h.activeLoaded = false
 			return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID), true
@@ -29,7 +29,7 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (*HomeScreen, tea.Cmd, bool) {
 	case "h":
 		if h.activeProject > 0 {
 			h.activeProject--
-			h.paginator.Page--
+			h.tabs.SetActive(h.activeProject)
 			h.activeLoading = true
 			h.activeLoaded = false
 			return h, h.fetchActiveTasksCmd(h.projects[h.activeProject].ID), true

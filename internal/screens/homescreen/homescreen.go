@@ -7,9 +7,9 @@ import (
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
 	types "github.com/alex-305/ticktui/pkg/tickticktypes"
-	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Focus int
@@ -27,10 +27,11 @@ type HomeScreen struct {
 
 	activeTaskTable    components.TaskTable
 	completedTaskTable components.TaskTable
-	paginator          paginator.Model
-	loadingSpinner     spinner.Model
-	focus              Focus
+	tabs               components.Tabs
 
+	loadingSpinner spinner.Model
+
+	focus            Focus
 	activeLoaded     bool
 	activeLoading    bool
 	completedLoaded  bool
@@ -41,6 +42,7 @@ type HomeScreen struct {
 func NewHomeScreen(ctx context.AppContext) screens.Screen {
 	return &HomeScreen{
 		ctx:              ctx,
+		tabs:             components.NewTabs(),
 		activeLoaded:     false,
 		activeLoading:    false,
 		completedLoaded:  false,
@@ -87,36 +89,38 @@ func (h *HomeScreen) View(width, height int) string {
 		return components.NewErrorBox(h.err, width, height).View()
 	}
 	if len(h.projects) == 0 || !h.activeLoaded || !h.completedLoaded {
-		return fmt.Sprintf("\n %s Loading tasks...", h.loadingSpinner.View())
+		loadingStr := fmt.Sprintf("\n %s Loading tasks...", h.loadingSpinner.View())
+		return lipgloss.NewStyle().Width(width).Height(height).Align(lipgloss.Center, lipgloss.Center).Render(loadingStr)
 	}
 
-	var paginatorView string
-	if len(h.projects) > 0 {
-		paginatorView = h.paginator.View()
-	} else {
-		paginatorView = "\n"
-	}
-
-	var cKeyString string
+	cKeyString := "Undo Completion"
 	if h.focus == FocusActive {
 		cKeyString = "Complete Task"
-	} else {
-		cKeyString = "Undo Completion"
 	}
 
 	refreshingLabel := ""
-
 	if h.activeLoading || h.completedLoading {
 		refreshingLabel = h.loadingSpinner.View() + " Refreshing..."
 	}
 
-	return fmt.Sprintf(
-		"Project: %s %s\n\n%s\n\n%s\n\nCompleted:\n%s\n\n%s",
-		h.projects[h.activeProject].Name,
+	tabsView := h.tabs.View(width)
+
+	content := fmt.Sprintf(
+		"%s\n\n%s\n\nCompleted:\n%s\n\n%s",
 		refreshingLabel,
 		h.activeTaskTable.View(),
-		paginatorView,
 		h.completedTaskTable.View(),
 		fmt.Sprintf("Controls: [Tab] Focus • [r] Refresh • [n] New Task • [x] Delete Task • [c] %s", cKeyString),
 	)
+
+	windowedContent := h.tabs.WrapContent(content, width)
+
+	finalView := lipgloss.JoinVertical(lipgloss.Left, tabsView, windowedContent)
+
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		MaxHeight(height).
+		MaxWidth(width).
+		Render(finalView)
 }

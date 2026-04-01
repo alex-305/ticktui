@@ -1,6 +1,7 @@
 package components
 
 import (
+	"errors"
 	"time"
 
 	types "github.com/alex-305/ticktui/pkg/tickticktypes"
@@ -14,12 +15,13 @@ type TaskTable struct {
 	Tasks []*types.Task
 }
 
-func NewTaskTable(tasks []*types.Task, width int) TaskTable {
+func NewTaskTable(tasks []*types.Task, width, height int) TaskTable {
+	usableWidth := max(width, 20)
 	columns := []table.Column{
-		{Title: "Title", Width: 25},
-		{Title: "Description", Width: 35},
-		{Title: "Due Date", Width: 15},
-		{Title: "Priority", Width: 10},
+		{Title: "Title", Width: int(float64(usableWidth) * 0.3)},
+		{Title: "Description", Width: int(float64(usableWidth) * 0.4)},
+		{Title: "Due Date", Width: int(float64(usableWidth) * 0.15)},
+		{Title: "Priority", Width: int(float64(usableWidth) * 0.1)},
 	}
 
 	rows := make([]table.Row, len(tasks))
@@ -38,11 +40,12 @@ func NewTaskTable(tasks []*types.Task, width int) TaskTable {
 		}
 	}
 
+	usableHeight := max(height, 15)
 	t := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(10),
+		table.WithHeight(usableHeight),
 	)
 	tt := TaskTable{Model: t, Tasks: tasks}
 	tt.ApplyActiveStyle()
@@ -102,6 +105,25 @@ func (tt *TaskTable) ApplyInactiveStyle() {
 
 	tt.Model.SetStyles(s)
 }
+
+func (tt *TaskTable) SetDimensions(width, height int) error {
+	tt.Model.SetWidth(width)
+	tt.Model.SetHeight(height)
+	c := tt.Model.Columns()
+
+	if len(c) == 0 {
+		return errors.New("columns not yet initialized")
+	}
+
+	c[0].Width = int(float64(width) * 0.3)
+	c[1].Width = int(float64(width) * 0.4)
+	c[2].Width = int(float64(width) * 0.15)
+	c[3].Width = int(float64(width) * 0.1)
+	tt.Model.SetColumns(c)
+
+	return nil
+}
+
 func (tt *TaskTable) Update(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	tt.Model, cmd = tt.Model.Update(msg)

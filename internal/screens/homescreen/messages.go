@@ -4,7 +4,6 @@ import (
 	"github.com/alex-305/ticktui/internal/components"
 	"github.com/alex-305/ticktui/internal/screens"
 	types "github.com/alex-305/ticktui/pkg/tickticktypes"
-	"github.com/charmbracelet/bubbles/paginator"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -40,7 +39,9 @@ func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen
 			h.err = msg.err
 			return h, nil, true
 		}
-		h.activeTaskTable = components.NewTaskTable(msg.tasks, width)
+		innerWidth := h.tabs.GetWindowWidth(width)
+		innerHeight := h.tabs.GetWindowHeight(height)
+		h.activeTaskTable = components.NewTaskTable(msg.tasks, innerWidth, (innerHeight/2)-10)
 		h.activeLoading = false
 		h.activeLoaded = true
 
@@ -52,7 +53,9 @@ func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen
 			h.err = msg.err
 			return h, nil, true
 		}
-		h.completedTaskTable = components.NewTaskTable(msg.tasks, width)
+		innerWidth := h.tabs.GetWindowWidth(width)
+		innerHeight := h.tabs.GetWindowHeight(height)
+		h.completedTaskTable = components.NewTaskTable(msg.tasks, innerWidth, (innerHeight/2)-10)
 		h.completedLoading = false
 		h.completedLoaded = true
 
@@ -68,14 +71,20 @@ func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen
 		h.projects = msg.projects
 		lenProjects := len(h.projects)
 		ids := make([]string, lenProjects)
+
 		for i, p := range h.projects {
 			ids[i] = p.ID
 		}
+
+		var projectNames []string
+		for i, p := range h.projects {
+			ids[i] = p.ID
+			projectNames = append(projectNames, p.Name)
+		}
 		h.projectIDs = ids
-		p := paginator.New()
-		p.SetTotalPages(lenProjects)
-		p.Type = paginator.Dots
-		h.paginator = p
+
+		h.tabs.SetItems(projectNames)
+		h.tabs.SetActive(h.activeProject)
 
 		h, c := h.fullFetch()
 		return h, c, true
