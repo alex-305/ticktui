@@ -100,8 +100,7 @@ func (t Tabs) View(width int) string {
 	}
 
 	var nodes []tabNode
-
-	if t.LeftHint != "" {
+	if len(t.Items) > 1 && t.LeftHint != "" {
 		nodes = append(nodes, tabNode{
 			text:     "← " + t.LeftHint,
 			style:    t.Styles.HintTab,
@@ -121,7 +120,7 @@ func (t Tabs) View(width int) string {
 		})
 	}
 
-	if t.RightHint != "" {
+	if len(t.Items) > 1 && t.RightHint != "" {
 		nodes = append(nodes, tabNode{
 			text:     t.RightHint + " →",
 			style:    t.Styles.HintTab,
