@@ -42,7 +42,7 @@ type HomeScreen struct {
 func NewHomeScreen(ctx context.AppContext) screens.Screen {
 	return &HomeScreen{
 		ctx:              ctx,
-		tabs:             components.NewTabs(),
+		tabs:             components.NewTabs("h", "l"),
 		activeLoaded:     false,
 		activeLoading:    false,
 		completedLoaded:  false,
