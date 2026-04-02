@@ -37,7 +37,7 @@ func (h *HomeScreen) handleKeyMsg(msg tea.KeyMsg) (*HomeScreen, tea.Cmd, bool) {
 	case "r":
 		h.getFocusedTable().ApplyActiveStyle()
 		h.getUnfocusedTable().ApplyInactiveStyle()
-		s, c := h.fullFetch()
+		s, c := h.fetchAllTasks()
 		return s, c, true
 	case "n":
 		return h, func() tea.Msg {

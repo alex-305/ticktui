@@ -19,7 +19,7 @@ func (h *HomeScreen) getUnfocusedTable() *components.TaskTable {
 	return &h.completedTaskTable
 }
 
-func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
+func (h *HomeScreen) fetchAllTasks() (*HomeScreen, tea.Cmd) {
 	if len(h.projects) == 0 {
 		return h, nil
 	}
@@ -27,10 +27,10 @@ func (h *HomeScreen) fullFetch() (*HomeScreen, tea.Cmd) {
 	h.activeLoading = true
 	h.completedLoading = true
 
-	return h, h.fetchAllData(h.projects[h.activeProject].ID, h.projectIDs)
+	return h, h.fetchProjectsAndTasks(h.projects[h.activeProject].ID, h.projectIDs)
 }
 
-func (h *HomeScreen) fetchAllData(projectID string, allProjectIDs []string) tea.Cmd {
+func (h *HomeScreen) fetchProjectsAndTasks(projectID string, allProjectIDs []string) tea.Cmd {
 	return tea.Batch(
 		h.fetchCompletedTasksCmd(allProjectIDs),
 		h.fetchActiveTasksCmd(projectID),

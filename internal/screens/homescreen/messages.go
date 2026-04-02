@@ -86,11 +86,11 @@ func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen
 		h.tabs.SetItems(projectNames)
 		h.tabs.SetActive(h.activeProject)
 
-		h, c := h.fullFetch()
+		h, c := h.fetchAllTasks()
 		return h, c, true
 
 	case screens.GoBackScreenMsg:
-		h, c := h.fullFetch()
+		h, c := h.fetchAllTasks()
 		return h, c, true
 
 	case ActionCompletedMsg:
@@ -99,7 +99,7 @@ func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen
 			h.activeLoading = false
 			return h, nil, true
 		}
-		h, c := h.fullFetch()
+		h, c := h.fetchAllTasks()
 		return h, c, true
 	}
 	return h, nil, false
