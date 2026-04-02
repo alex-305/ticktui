@@ -88,10 +88,6 @@ func (h *HomeScreen) View(width, height int) string {
 	if h.err != nil {
 		return components.NewErrorBox(h.err, width, height).View()
 	}
-	if len(h.projects) == 0 || !h.activeLoaded || !h.completedLoaded {
-		loadingStr := fmt.Sprintf("\n %s Loading tasks...", h.loadingSpinner.View())
-		return lipgloss.NewStyle().Width(width).Height(height).Align(lipgloss.Center, lipgloss.Center).Render(loadingStr)
-	}
 
 	cKeyString := "Undo Completion"
 	if h.focus == FocusActive {
