@@ -2,6 +2,7 @@ package ticktickapi
 
 import (
 	"fmt"
+	"slices"
 
 	types "github.com/alex-305/ticktui/pkg/tickticktypes"
 	"github.com/pkg/errors"
@@ -21,7 +22,7 @@ func (c *Client) ListProjects() ([]*types.Project, error) {
 		return nil, fmt.Errorf("failed to list projects: %s", resp.String())
 	}
 
-	projects = append(projects, &types.InboxProject)
+	projects = slices.Insert(projects, 0, &types.InboxProject)
 
 	return projects, nil
 }
