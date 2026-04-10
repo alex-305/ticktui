@@ -83,7 +83,6 @@ func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea
 
 	return h, h.getFocusedTable().Update(msg)
 }
-
 func (h *HomeScreen) View(width, height int) string {
 	if h.err != nil {
 		return components.NewErrorBox(h.err, width, height).View()
@@ -99,11 +98,10 @@ func (h *HomeScreen) View(width, height int) string {
 		refreshingLabel = h.loadingSpinner.View() + " Refreshing..."
 	}
 
-	tabsView := h.tabs.View(width)
+	tabsView := h.tabs.View(width, refreshingLabel)
 
 	content := fmt.Sprintf(
-		"%s\n\n%s\n\nCompleted:\n%s\n\n%s",
-		refreshingLabel,
+		"%s\n\nCompleted:\n%s\n\n%s",
 		h.activeTaskTable.View(),
 		h.completedTaskTable.View(),
 		fmt.Sprintf("Controls: [Tab] Focus • [r] Refresh • [n] New Task • [x] Delete Task • [c] %s", cKeyString),

@@ -78,6 +78,10 @@ func (t *Tabs) SetActive(idx int) {
 	}
 }
 
+func (t Tabs) WrapContent(content string, width int) string {
+	return t.Styles.Window.Width(width - 2).Render(content)
+}
+
 func (t Tabs) GetWindowWidth(screenWidth int) int {
 	return screenWidth - t.Styles.Window.GetHorizontalFrameSize()
 }
@@ -88,7 +92,7 @@ func (t Tabs) GetWindowHeight(screenHeight int) int {
 	return screenHeight - tabRowHeight - windowFrame
 }
 
-func (t Tabs) View(width int) string {
+func (t Tabs) View(width int, rightAccessory string) string {
 	if len(t.Items) == 0 && t.LeftHint == "" && t.RightHint == "" {
 		return ""
 	}
@@ -132,7 +136,6 @@ func (t Tabs) View(width int) string {
 
 	for i, node := range nodes {
 		isFirst := i == 0
-
 		border := node.style.GetBorderStyle()
 
 		if isFirst && node.isActive {
@@ -147,14 +150,28 @@ func (t Tabs) View(width int) string {
 
 	tabRow := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 
-	gap := max(width-lipgloss.Width(tabRow)-1, 0)
+	tabRowWidth := lipgloss.Width(tabRow)
+	totalRightSpace := width - tabRowWidth
+	accessoryWidth := lipgloss.Width(rightAccessory)
 
-	filler := strings.Repeat("─", gap) + "┐"
 	fillerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#874BFD"))
 
-	return lipgloss.JoinHorizontal(lipgloss.Bottom, tabRow, fillerStyle.Render(filler))
-}
+	if accessoryWidth > 0 && totalRightSpace >= accessoryWidth+4 {
+		leftDashesCount := totalRightSpace - accessoryWidth - 4
+		leftDashes := ""
+		if leftDashesCount > 0 {
+			leftDashes = strings.Repeat("─", leftDashesCount)
+		}
 
-func (t Tabs) WrapContent(content string, width int) string {
-	return t.Styles.Window.Width(width - 2).Render(content)
+		rightSide := fillerStyle.Render(leftDashes) +
+			" " + rightAccessory + " " +
+			fillerStyle.Render("─┐")
+
+		return lipgloss.JoinHorizontal(lipgloss.Bottom, tabRow, rightSide)
+	}
+
+	gap := max(totalRightSpace-1, 0)
+	filler := strings.Repeat("─", gap) + "┐"
+
+	return lipgloss.JoinHorizontal(lipgloss.Bottom, tabRow, fillerStyle.Render(filler))
 }
