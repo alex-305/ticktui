@@ -27,7 +27,10 @@ func (h *HomeScreen) fetchAllTasks() (*HomeScreen, tea.Cmd) {
 	h.activeLoading = true
 	h.completedLoading = true
 
-	return h, h.fetchProjectsAndTasks(h.projects[h.activeProject].ID, h.projectIDs)
+	return h, tea.Batch(
+		h.fetchProjectsAndTasks(h.projects[h.activeProject].ID, h.projectIDs),
+		h.showLoadingCmd(),
+	)
 }
 
 func (h *HomeScreen) fetchProjectsAndTasks(projectID string, allProjectIDs []string) tea.Cmd {

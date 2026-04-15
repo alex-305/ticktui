@@ -29,7 +29,8 @@ type HomeScreen struct {
 	completedTaskTable components.TaskTable
 	tabs               components.Tabs
 
-	loadingSpinner spinner.Model
+	loadingSpinner     spinner.Model
+	showLoadingSpinner bool
 
 	focus            Focus
 	activeLoaded     bool
@@ -57,7 +58,8 @@ func (h *HomeScreen) Init() tea.Cmd {
 
 	return tea.Batch(
 		h.fetchProjectsCmd(),
-		h.loadingSpinner.Tick)
+		h.loadingSpinner.Tick,
+		h.showLoadingCmd())
 }
 
 func (h *HomeScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {

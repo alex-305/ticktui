@@ -58,3 +58,9 @@ func (h *HomeScreen) fetchProjectsCmd() tea.Cmd {
 		return ProjectsLoadedMsg{projects: projects, err: nil}
 	}
 }
+
+func (h *HomeScreen) showLoadingCmd() tea.Cmd {
+	return tea.Tick(time.Second, func(_ time.Time) tea.Msg {
+		return ShowLoadingMsg{}
+	})
+}

@@ -27,6 +27,8 @@ type ActionCompletedMsg struct {
 	err error
 }
 
+type ShowLoadingMsg struct{}
+
 func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen, tea.Cmd, bool) {
 
 	switch msg := msg.(type) {
@@ -34,6 +36,11 @@ func (h *HomeScreen) handleMessages(msg tea.Msg, width, height int) (*HomeScreen
 		var spinCmd tea.Cmd
 		h.loadingSpinner, spinCmd = h.loadingSpinner.Update(msg)
 		return h, spinCmd, true
+	case ShowLoadingMsg:
+		if h.activeLoading || h.completedLoading {
+			h.showLoadingSpinner = true
+		}
+		return h, nil, true
 	case ActiveTaskListMsg:
 		if msg.err != nil {
 			h.err = msg.err
