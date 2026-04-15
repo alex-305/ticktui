@@ -1,65 +1,52 @@
 package config
 
 import (
-	"github.com/adrg/xdg"
-	"github.com/spf13/viper"
+	"context"
 	"os"
 	"path/filepath"
 
+	"github.com/adrg/xdg"
+	"github.com/apple/pkl-go/pkl"
 	"github.com/pkg/errors"
 )
 
-const appName = "ticktui"
-
 type Config struct {
-	DefaultProjectID    string `mapstructure:"default_project_id"`
-	DefaultProjectColor string `mapstructure:"default_project_color"`
+	DefaultProjectID    string              `pkl:"defaultProjectID"`
+	DefaultProjectColor string              `pkl:"defaultProjectColor"`
+	Keybindings         map[string][]string `pkl:"keybindings"`
 }
 
-var (
-	configPath = filepath.Join(xdg.ConfigHome, appName, "config.yaml")
-	tokenPath  = filepath.Join(xdg.DataHome, appName, "token")
-)
+var configPath = filepath.Join(xdg.ConfigHome, "ticktui", "config.pkl")
 
 func InitConfig() error {
-	viper.SetConfigFile(configPath)
-	viper.SetConfigType("yaml")
-
 	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
 		return errors.Wrap(err, "creating config directory")
 	}
 
-	viper.SetDefault("default_project_id", "")
-	viper.SetDefault("default_project_color", "#FF1111")
-
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		if err := viper.SafeWriteConfigAs(configPath); err != nil {
-			return errors.Wrap(err, "writing default config")
+		if err := os.WriteFile(configPath, []byte(""), 0644); err != nil {
+			return errors.Wrap(err, "writing default pkl config")
 		}
-	}
-
-	if err := viper.ReadInConfig(); err != nil {
-		return errors.Wrap(err, "reading config")
 	}
 
 	return nil
 }
 
-func Load() (*Config, error) {
+func Load(ctx context.Context) (*Config, error) {
 	if err := InitConfig(); err != nil {
 		return nil, err
 	}
 
+	evaluator, err := pkl.NewEvaluator(ctx, pkl.PreconfiguredOptions)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating pkl evaluator")
+	}
+	defer evaluator.Close()
+
 	var cfg Config
-	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, errors.Wrap(err, "unmarshaling config")
+	if err := evaluator.EvaluateModule(ctx, pkl.FileSource(configPath), &cfg); err != nil {
+		return nil, errors.Wrap(err, "evaluating pkl config")
 	}
 
 	return &cfg, nil
-}
-
-func Save(cfg *Config) error {
-	viper.Set("default_project_id", cfg.DefaultProjectID)
-	viper.Set("default_project_color", cfg.DefaultProjectColor)
-	return viper.WriteConfigAs(configPath)
 }

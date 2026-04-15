@@ -4,8 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/adrg/xdg"
 	"github.com/pkg/errors"
 )
+
+var tokenPath = filepath.Join(xdg.DataHome, "ticktui", "token")
 
 func LoadToken() (string, error) {
 	data, err := os.ReadFile(tokenPath)
