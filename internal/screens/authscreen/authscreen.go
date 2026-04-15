@@ -5,11 +5,8 @@ import (
 
 	"github.com/alex-305/ticktui/internal/asciiart"
 	"github.com/alex-305/ticktui/internal/components"
-	"github.com/alex-305/ticktui/internal/config"
 	"github.com/alex-305/ticktui/internal/context"
 	"github.com/alex-305/ticktui/internal/screens"
-	"github.com/alex-305/ticktui/internal/screens/homescreen"
-	api "github.com/alex-305/ticktui/pkg/ticktickapi"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -42,42 +39,19 @@ func (a *AuthScreen) Init() tea.Cmd {
 func (s *AuthScreen) Update(msg tea.Msg, width, height int) (screens.Screen, tea.Cmd) {
 	var cmd tea.Cmd
 
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case " ":
-			if s.submitting {
-				return s, nil
-			}
-			s.submitting = true
-			return s, func() tea.Msg {
-				token, err := api.LaunchBrowserAndSaveAuthToken(fmt.Sprintf("%s\n\nSuccessfully authenticated. You can now return to the comfort of your terminal :)", asciiart.Logo))
-				config.SaveToken(token)
+	h, c, ok := s.handleMessages(msg)
+	if ok {
+		return h, c
+	}
 
-				return TokenExchangedMsg{err}
-			}
-		}
-	case TokenExchangedMsg:
-		if msg.err != nil {
-			s.err = msg.err
-			s.submitting = false
-			return s, nil
-		}
-		return s, func() tea.Msg {
-			token, err := config.LoadToken()
-			if err != nil {
-				s.err = msg.err
-			}
-			freshClient, err := api.GetClient(token)
-
-			if err != nil {
-				s.err = msg.err
-			}
-			s.ctx.APIClient = freshClient
-
-			return screens.ChangeScreenMsgNoHistory{NewScreen: homescreen.NewHomeScreen(s.ctx)}
+	keyMsg, isKeyMsg := msg.(tea.KeyMsg)
+	if isKeyMsg {
+		h, c, ok := s.handleKeyMsg(keyMsg)
+		if ok {
+			return h, c
 		}
 	}
+
 	s.textInput, cmd = s.textInput.Update(msg)
 	return s, cmd
 }
