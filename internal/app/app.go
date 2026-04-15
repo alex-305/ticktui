@@ -55,46 +55,20 @@ func (m *Model) Init() tea.Cmd {
 }
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case screens.ChangeScreenMsg:
-		m.history = append(m.history, m.current)
-		m.current = msg.NewScreen
-		return m, m.current.Init()
-	case screens.ChangeScreenMsgNoHistory:
-		m.history = []screens.Screen{}
-		m.current = msg.NewScreen
-		return m, m.current.Init()
-	case screens.GoBackScreenMsg:
-		if len(m.history) > 0 {
-			lastIndex := len(m.history) - 1
-			lastPage := m.history[lastIndex]
-			m.history = m.history[:lastIndex]
 
-			m.current = lastPage
-			return m, m.current.Init()
-		}
-		return m, nil
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+	h, c, ok := m.handleMessages(msg)
+	if ok {
+		return h, c
+	}
 
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
-			return m, tea.Quit
-
-		case "esc":
-			if len(m.history) > 0 {
-				lastIndex := len(m.history) - 1
-				lastPage := m.history[lastIndex]
-				m.history = m.history[:lastIndex]
-
-				m.current = lastPage
-
-				return m, nil
-			}
+	keyMsg, isKeyMsg := msg.(tea.KeyMsg)
+	if isKeyMsg {
+		h, c, ok := m.handleKeyMsg(keyMsg)
+		if ok {
+			return h, c
 		}
 	}
+
 	return m.updateScreen(msg)
 
 }
